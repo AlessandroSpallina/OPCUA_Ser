@@ -21,6 +21,12 @@
     <ClCompile Include="server_objects.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="working_subtype.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h">

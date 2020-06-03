@@ -145,6 +145,8 @@
   <ItemGroup>
     <ClCompile Include="main.c" />
     <ClCompile Include="server_objects.c" />
+    <ClCompile Include="test.c" />
+    <ClCompile Include="working_subtype.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
