@@ -5,7 +5,7 @@
 #include <signal.h>
 
 /* predefined identifier for later use */
-UA_NodeId pumpTypeId = {1, UA_NODEIDTYPE_NUMERIC, {1001}};
+UA_NodeId cityTypeId = {1, UA_NODEIDTYPE_NUMERIC, {1001}};
 
 static void defineObjectTypes(UA_Server *server) {
     /* Define the object type for "City" */
@@ -16,7 +16,7 @@ static void defineObjectTypes(UA_Server *server) {
                                 UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE),
                                 UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE),
                                 UA_QUALIFIEDNAME(1, "CityType"), ctAttr,
-                                NULL, &cityTypeId);
+                                NULL, &cityTypeId);    
 
     UA_VariableAttributes nameAttr = UA_VariableAttributes_default;
     nameAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Name");
@@ -39,12 +39,11 @@ static void defineObjectTypes(UA_Server *server) {
 
 
     UA_VariableAttributes latitudeAttr = UA_VariableAttributes_default;
-    ////latitudeAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Latitude");
+    latitudeAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Latitude");
     UA_Server_addVariableNode(server, UA_NODEID_NULL, cityTypeId,
                               UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
                               UA_QUALIFIEDNAME(1, "Latitude"),
-                              UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), latitudeAttr, NULL, NULL);
-    
+                              UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), latitudeAttr, NULL, NULL);   
 
 
     // Define the object type for "Weather"
@@ -53,10 +52,15 @@ static void defineObjectTypes(UA_Server *server) {
     wtAttr.displayName = UA_LOCALIZEDTEXT("en-US", "WeatherType");
     UA_Server_addObjectTypeNode(server, UA_NODEID_NULL,
         UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE),
-        UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+        UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE),
         UA_QUALIFIEDNAME(1, "WeatherType"), wtAttr,
-        NULL, &weatherTypeId);
+        NULL, &weatherTypeId);    
 
+    UA_Server_addObjectTypeNode(server, weatherTypeId,
+        cityTypeId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+        UA_QUALIFIEDNAME(1, "WeatherType"), wtAttr,
+        NULL, NULL);
+    
     UA_VariableAttributes temperatureAttr = UA_VariableAttributes_default;
     temperatureAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Temperature");
     temperatureAttr.valueRank = UA_VALUERANK_SCALAR;
@@ -74,10 +78,6 @@ static void defineObjectTypes(UA_Server *server) {
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "Humidity"),
         UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), humidityAttr, NULL, &humidityId);
-
-
-
-
 
 
     ///* Define the object type for "Pump" */
@@ -118,14 +118,12 @@ static void defineObjectTypes(UA_Server *server) {
  * the type-instance relation at runtime.
  */
 
-static void addPumpObjectInstance(UA_Server* server, char* name) {
+static void addObjectInstance(UA_Server* server, char* name) {
     UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
     oAttr.displayName = UA_LOCALIZEDTEXT("en-US", name);
-    UA_Server_addObjectNode(server, UA_NODEID_NULL,
-        UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
-        UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-        UA_QUALIFIEDNAME(1, name),
-        pumpTypeId, /* this refers to the object type
+   
+    UA_Server_addObjectNode(server, UA_NODEID_NULL, UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),UA_QUALIFIEDNAME(1, name),
+        cityTypeId, /* this refers to the object type
                        identifier */
         oAttr, NULL, NULL);
 }
@@ -213,7 +211,7 @@ int main(void) {
     UA_ServerConfig_setDefault(UA_Server_getConfig(server));
 
     defineObjectTypes(server);
-    //addPumpObjectInstance(server, "pump2");
+    addObjectInstance(server, "Catania");
     //addPumpObjectInstance(server, "pump3");
     //addPumpTypeConstructor(server);
     //addPumpObjectInstance(server, "pump4");
