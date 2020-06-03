@@ -11,20 +11,19 @@ UA_NodeId weatherTypeId = { 1, UA_NODEIDTYPE_NUMERIC, {1001} };
 static void
 defineObjectTypes(UA_Server* server) {
     /* Define the object type for "Device" */
-    UA_NodeId deviceTypeId; /* get the nodeid assigned by the server */
     UA_ObjectTypeAttributes dtAttr = UA_ObjectTypeAttributes_default;
     dtAttr.displayName = UA_LOCALIZEDTEXT("en-US", "CityType");
     UA_Server_addObjectTypeNode(server, cityTypeId,
         UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE),
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE),
         UA_QUALIFIEDNAME(1, "CityType"), dtAttr,
-        NULL, &deviceTypeId);
+        NULL, NULL);
     
 
     UA_VariableAttributes mnAttr = UA_VariableAttributes_default;
     mnAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Name");   
     UA_NodeId manufacturerNameId;
-    UA_Server_addVariableNode(server, UA_NODEID_NULL, deviceTypeId,
+    UA_Server_addVariableNode(server, UA_NODEID_NULL, cityTypeId,
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "Name"),
         UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), mnAttr, NULL, &manufacturerNameId);
@@ -36,7 +35,7 @@ defineObjectTypes(UA_Server* server) {
 
     UA_VariableAttributes modelAttr = UA_VariableAttributes_default;
     modelAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Latitude");
-    UA_Server_addVariableNode(server, UA_NODEID_NULL, deviceTypeId,
+    UA_Server_addVariableNode(server, UA_NODEID_NULL, cityTypeId,
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "Latitude"),
         UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), modelAttr, NULL, NULL);
@@ -46,7 +45,7 @@ defineObjectTypes(UA_Server* server) {
     ptAttr.displayName = UA_LOCALIZEDTEXT("en-US", "WeatherType");
     UA_Server_addObjectTypeNode(server, weatherTypeId,
         //deviceTypeId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
-        deviceTypeId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE),
+        UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE), UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE),
         UA_QUALIFIEDNAME(1, "WeatherType"), ptAttr,
         NULL, NULL);
 
@@ -90,7 +89,13 @@ addObjectInstance(UA_Server* server, char* name, UA_NodeId NodeIdType) {
         UA_QUALIFIEDNAME(1, name),
         NodeIdType, /* this refers to the object type
                        identifier */
-        oAttr, NULL, NULL);    
+        oAttr, NULL, NULL); 
+
+    // see https://github.com/open62541/open62541/blob/master/examples/tutorial_server_object.c
+
+    //UA_VariableAttributes vAtt = UA_VariableAttributes_default;
+    //vAtt.displayName = UA_LOCALIZEDTEXT("en-US", name);
+    //UA_Server_addVariableNode(server,UA_NODEID_NULL,)
 }
 
 static volatile UA_Boolean running = true;
