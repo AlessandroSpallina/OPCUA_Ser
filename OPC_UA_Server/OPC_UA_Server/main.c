@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     UA_ServerConfig* config = UA_Server_getConfig(server);
 
     UA_StatusCode retval = UA_ServerConfig_setDefaultWithSecurityPolicies(config, 4040, 
-        &certificate, &privateKey, NULL, NULL, NULL, NULL, NULL, NULL);
+        &certificate, &privateKey, NULL, 0, NULL, 0, NULL, 0);
 
     if (retval != UA_STATUSCODE_GOOD) {
         UA_Server_delete(server);
