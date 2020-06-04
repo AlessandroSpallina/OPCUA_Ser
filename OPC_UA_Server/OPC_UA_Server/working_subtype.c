@@ -115,8 +115,8 @@ int main(void) {
     UA_ServerConfig_setDefault(UA_Server_getConfig(server));
 
     defineCityObjectType(server); 
-    defineWeatherObjectType(server); 
-    addCityInstance(server, "Catania", cityTypeId);
+    //defineWeatherObjectType(server); 
+   // addCityInstance(server, "Catania", cityTypeId);
     //defineObjectTypes(server);
     //dObjectInstance(server, "Catania", cityTypeId);
     //addObjectInstance(server, "Enna",cityTypeId);
