@@ -15,13 +15,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="main1.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="datasource.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="server_objects.c">
+    <ClCompile Include="server_encryption.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="working_subtype.c">
+    <ClCompile Include="server_objects.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="test.c">
@@ -30,10 +36,13 @@
     <ClCompile Include="TypeDefinition.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="working_subtype.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

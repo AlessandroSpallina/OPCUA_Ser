@@ -18,6 +18,19 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="datasource.c" />
+    <ClCompile Include="main.c" />
+    <ClCompile Include="main1.c" />
+    <ClCompile Include="server_encryption.c" />
+    <ClCompile Include="server_objects.c" />
+    <ClCompile Include="test.c" />
+    <ClCompile Include="TypeDefinition.c" />
+    <ClCompile Include="working_subtype.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="common.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -142,16 +155,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="main.c" />
-    <ClCompile Include="server_objects.c" />
-    <ClCompile Include="test.c" />
-    <ClCompile Include="TypeDefinition.c" />
-    <ClCompile Include="working_subtype.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="common.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

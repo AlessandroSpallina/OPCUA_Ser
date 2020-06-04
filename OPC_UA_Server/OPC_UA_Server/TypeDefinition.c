@@ -4,6 +4,26 @@
 #include <signal.h>
 #include <stdio.h>
 
+
+
+static void defineTempVariable(UA_Server* server) {
+
+}
+
+
+
+static void defineWeatherObjType(UA_Server* server) {
+	UA_NodeId weatherTypeId = UA_NODEID_STRING(1, "Weather-Obj-Type");
+	UA_ObjectTypeAttributes wtAttr = UA_ObjectTypeAttributes_default;
+	wtAttr.description = UA_LOCALIZEDTEXT("en-US", "Description of WeatherType");
+	wtAttr.displayName = UA_LOCALIZEDTEXT("en-US", "WeatherType");
+	
+	UA_Server_addObjectTypeNode(server, weatherTypeId,		
+		UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE), UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE),
+		UA_QUALIFIEDNAME(1, "WeatherType"), wtAttr,
+		NULL, NULL);
+}
+
 static void
 defineWeatherObjectType(UA_Server* server) {
 	//definisce il tipo di oggetto Weather
@@ -126,7 +146,12 @@ static void addCityInstance(UA_Server* server, char* name, UA_NodeId CityTypeId)
         UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
         UA_QUALIFIEDNAME(1, name),
 			CityTypeId, /* this refers to the object typeidentifier -> identificatore del tipo da creare */
-        oAttr, NULL, &cityInstanceId);		
+        oAttr, NULL, &cityInstanceId);	
+		
+		UA_Variant value; 
+		UA_Variant_setScalar(&value, &name, &UA_TYPES[UA_TYPES_STRING]);
+		UA_Server_writeValue(server, cityInstanceId, value);
+		UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Ho scritto su value");
 		
 
 
