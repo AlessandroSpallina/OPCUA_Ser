@@ -39,11 +39,17 @@ int main(int argc, char *argv[]) {
         return retval == UA_STATUSCODE_GOOD ? EXIT_SUCCESS : EXIT_FAILURE;
     }
     
-    defineWeatherObject(server, "Catania"); 
-    defineWeatherObject(server, "Enna"); 
-    defineWeatherObject(server, "Monciuffi"); 
+    /*Prova con ObjectTypeCustom*/
 
-    UA_Server_addRepeatedCallback(server, updateValueCallback, NULL, 2000, NULL);
+    defineObjectTypeWeather(server);
+    defInstanceWeather(server, "Catania"); 
+   
+    /* Prova con l'istanza diretta di oggetti */
+
+    //defineWeatherObject(server, "Catania"); 
+    //defineWeatherObject(server, "Enna"); 
+    //defineWeatherObject(server, "Monciuffi");
+    //UA_Server_addRepeatedCallback(server, updateValueCallback, NULL, 2000, NULL);
 
     signal(SIGINT, stopHandler);
     signal(SIGTERM, stopHandler);
