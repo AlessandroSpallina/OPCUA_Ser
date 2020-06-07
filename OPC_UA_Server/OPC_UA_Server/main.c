@@ -41,15 +41,17 @@ int main(int argc, char *argv[]) {
     
     /*Prova con ObjectTypeCustom*/
 
-    defineObjectTypeWeather(server);
-    defInstanceWeather(server, "Catania"); 
+    //defineObjectTypeWeather(server);
+    //defInstanceWeather(server, "Catania"); 
    
     /* Prova con l'istanza diretta di oggetti */
+    defineWeatherObject(server, "Catania"); 
+    defineWeatherObject(server, "Enna"); 
+    defineWeatherObject(server, "Monciuffi");
 
-    //defineWeatherObject(server, "Catania"); 
-    //defineWeatherObject(server, "Enna"); 
-    //defineWeatherObject(server, "Monciuffi");
-    //UA_Server_addRepeatedCallback(server, updateValueCallback, NULL, 2000, NULL);
+    UA_Server_addRepeatedCallback(server, updateValueCallback, (void *) "Catania", 2000, NULL);
+    UA_Server_addRepeatedCallback(server, updateValueCallback, (void*) "Enna", 2000, NULL);
+    UA_Server_addRepeatedCallback(server, updateValueCallback, (void*) "Monciuffi", 2000, NULL);
 
     signal(SIGINT, stopHandler);
     signal(SIGTERM, stopHandler);

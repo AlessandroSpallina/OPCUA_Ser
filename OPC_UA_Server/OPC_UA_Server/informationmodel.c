@@ -1,17 +1,42 @@
 
 #include <open62541/plugin/log_stdout.h>
+#include <math.h>
 
 #include "informationmodel.h"
+#include "utils.h"
 
 //Define Directly object
+
+
+// This function generates fake temperature and humidity
 void updateValueCallback(UA_Server* server, void* data) {
-    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "updateValueCallback");
-    UA_Float now = (UA_Float)rand() / 10;
+    static UA_Float currentTemperature = 20.0, currentHumidity = 50.0;
+    char temperatureNodeName[120], humidityNodeName[120];
     UA_Variant value;
-    UA_Variant_setScalar(&value, &now, &UA_TYPES[UA_TYPES_FLOAT]);
-    UA_NodeId currentNodeId = UA_NODEID_STRING(1, "weather-Catania-tmp");
+    UA_NodeId currentNodeId;
+
+    UA_Float deltaTemperature = (UA_Float) (rand() % 10 / 10.0);
+    rand() % 2 ? fmodf((currentTemperature -= deltaTemperature), 50.0) : fmodf((currentTemperature += deltaTemperature), 50.0);
+  
+    UA_Float deltaHumidity = (UA_Float) (rand() % 10 / 10.0);
+    rand() % 2 ? fabs(fmodf((currentHumidity -= deltaHumidity), 100.0)) : fabs(fmodf((currentHumidity += deltaHumidity), 100.0));
+
+    sprintf(temperatureNodeName, "weather-%s-temperature", (char*)data);
+    sprintf(humidityNodeName, "weather-%s-humidity", (char*)data);
+
+    UA_Variant_setScalar(&value, &currentTemperature, &UA_TYPES[UA_TYPES_FLOAT]);
+    currentNodeId = UA_NODEID_STRING(1, temperatureNodeName);
     UA_Server_writeValue(server, currentNodeId, value);
+
+    UA_Variant_setScalar(&value, &currentHumidity, &UA_TYPES[UA_TYPES_FLOAT]);
+    currentNodeId = UA_NODEID_STRING(1, humidityNodeName);
+    UA_Server_writeValue(server, currentNodeId, value);
+
+#if DEBUG
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "updateValueCallback");
+#endif
 }
+
 void defineWeatherObject(UA_Server* server, char* locatioName) {
 
     /* get the nodeid assigned by the server */
@@ -29,7 +54,7 @@ void defineWeatherObject(UA_Server* server, char* locatioName) {
     UA_VariableAttributes mnAttr = UA_VariableAttributes_default;
     UA_String cityName = UA_STRING(locatioName);
     UA_Variant_setScalar(&mnAttr.value, &cityName, &UA_TYPES[UA_TYPES_STRING]);
-    mnAttr.displayName = UA_LOCALIZEDTEXT("en-US", "City Name");
+    mnAttr.displayName = UA_LOCALIZEDTEXT("en-US", "CityName");
     UA_Server_addVariableNode(server, UA_NODEID_NULL, weatherId,
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "CityNameQualified"),
@@ -38,24 +63,26 @@ void defineWeatherObject(UA_Server* server, char* locatioName) {
     //Secondo attributo - Temperatura della città
 
     UA_VariableAttributes tmpAttr = UA_VariableAttributes_default;
-    char c[50];
-    sprintf(c, "weather-%s-tmp", locatioName);
-    UA_NodeId attrNodeId = UA_NODEID_STRING(1, c);
+    char tmp[50];
+    sprintf(tmp, "weather-%s-temperature", locatioName);
+
     UA_Float Tmp = 0.0;
     UA_Variant_setScalar(&tmpAttr.value, &Tmp, &UA_TYPES[UA_TYPES_FLOAT]);
     tmpAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Temperature");
-    UA_Server_addVariableNode(server, attrNodeId, weatherId,
+    UA_Server_addVariableNode(server, UA_NODEID_STRING(1, tmp), weatherId,
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "TempQUalifiedName"),
         UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), tmpAttr, NULL, NULL);
 
     //Terzo attributo - Umidità della città 
+    memset(tmp, 0, sizeof(tmp));
+    sprintf(tmp, "weather-%s-humidity", locatioName);
 
     UA_VariableAttributes  humAttr = UA_VariableAttributes_default;
     UA_Float hum = 0.0;
     UA_Variant_setScalar(&humAttr.value, &hum, &UA_TYPES[UA_TYPES_FLOAT]);
     humAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Humidity");
-    UA_Server_addVariableNode(server, UA_NODEID_NULL, weatherId,
+    UA_Server_addVariableNode(server, UA_NODEID_STRING(1, tmp), weatherId,
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "Status"),
         UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), humAttr, NULL, NULL);
@@ -120,7 +147,7 @@ void defineObjectTypeWeather(UA_Server* server) {
 void defInstanceWeather(UA_Server* server, char* locatioName) {
     /* get the nodeid assigned by the server */
     //UA_NodeId weatherObjectNodeId = UA_NODEID_STRING(1, "weather-type");
-    char c[50];
+    char c[120];
     sprintf(c, "%s-instance", locatioName);
     //nostro 30100 - id dell'istanza
     UA_NodeId attrNodeId = UA_NODEID_STRING(1, c);
