@@ -38,24 +38,29 @@ void updateValueCallback(UA_Server* server, void* data) {
 }
 
 void defineWeatherObject(UA_Server* server, char* locatioName) {
+    char tmp[120];
+
+    sprintf(tmp, "weather-object-%s", locatioName);
 
     /* get the nodeid assigned by the server */
-    UA_NodeId weatherId;
+    UA_NodeId weatherId = UA_NODEID_STRING(1, tmp);
     UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
     oAttr.displayName = UA_LOCALIZEDTEXT("en-US", locatioName);
-    UA_Server_addObjectNode(server, UA_NODEID_NULL,
+    UA_Server_addObjectNode(server, weatherId,
         UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
         UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
         UA_QUALIFIEDNAME(1, "weatherQualifiedName"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE),
         oAttr, NULL, &weatherId);
 
-    //Primo attributo - Nome della località meteo
+    memset(tmp, 0, sizeof(tmp));
+    sprintf(tmp, "weather-%s-cityname", locatioName);
 
+    //Primo attributo - Nome della località meteo
     UA_VariableAttributes mnAttr = UA_VariableAttributes_default;
     UA_String cityName = UA_STRING(locatioName);
     UA_Variant_setScalar(&mnAttr.value, &cityName, &UA_TYPES[UA_TYPES_STRING]);
     mnAttr.displayName = UA_LOCALIZEDTEXT("en-US", "CityName");
-    UA_Server_addVariableNode(server, UA_NODEID_NULL, weatherId,
+    UA_Server_addVariableNode(server, UA_NODEID_STRING(1, tmp), weatherId,
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "CityNameQualified"),
         UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), mnAttr, NULL, NULL);
@@ -63,21 +68,43 @@ void defineWeatherObject(UA_Server* server, char* locatioName) {
     //Secondo attributo - Temperatura della città
 
     UA_VariableAttributes tmpAttr = UA_VariableAttributes_default;
-    char tmp[50];
+    memset(tmp, 0, sizeof(tmp));
     sprintf(tmp, "weather-%s-temperature", locatioName);
 
     UA_Float Tmp = 0.0;
     UA_Variant_setScalar(&tmpAttr.value, &Tmp, &UA_TYPES[UA_TYPES_FLOAT]);
     tmpAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Temperature");
+    UA_NodeId temperatureId;
     UA_Server_addVariableNode(server, UA_NODEID_STRING(1, tmp), weatherId,
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "TempQUalifiedName"),
-        UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), tmpAttr, NULL, NULL);
+        UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), tmpAttr, NULL, &temperatureId);
+
+    // Temperature Properties --------------
+
+    UA_VariableAttributes rangePropAttr = UA_VariableAttributes_default;
+    rangePropAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Range");
+    UA_String rangePropName = UA_STRING("-100:100");
+    UA_Variant_setScalar(&rangePropAttr.value, &rangePropName, &UA_TYPES[UA_TYPES_STRING]);
+    UA_Server_addVariableNode(server, UA_NODEID_NULL, temperatureId, 
+        UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY), UA_QUALIFIEDNAME(1, "RangeTemperatureQualifiedName"), 
+        UA_NODEID_NUMERIC(0, UA_NS0ID_PROPERTYTYPE), rangePropAttr, NULL, NULL);
+
+    UA_VariableAttributes unitOfMisurementPropAttr = UA_VariableAttributes_default;
+    unitOfMisurementPropAttr.displayName = UA_LOCALIZEDTEXT("en-US", "UnitOfMisurement");
+    UA_String unitOfMisurementPropName = UA_STRING("Celsius");
+    UA_Variant_setScalar(&unitOfMisurementPropAttr.value, &unitOfMisurementPropName, &UA_TYPES[UA_TYPES_STRING]);
+    UA_Server_addVariableNode(server, UA_NODEID_NULL, temperatureId,
+        UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY), UA_QUALIFIEDNAME(1, "UnitOfMisurementQualifiedName"),
+        UA_NODEID_NUMERIC(0, UA_NS0ID_PROPERTYTYPE), unitOfMisurementPropAttr, NULL, NULL);
+
+    // --------------------------------------
+
 
     //Terzo attributo - Umidità della città 
     memset(tmp, 0, sizeof(tmp));
     sprintf(tmp, "weather-%s-humidity", locatioName);
-
+    UA_NodeId humidityId;
     UA_VariableAttributes  humAttr = UA_VariableAttributes_default;
     UA_Float hum = 0.0;
     UA_Variant_setScalar(&humAttr.value, &hum, &UA_TYPES[UA_TYPES_FLOAT]);
@@ -85,7 +112,19 @@ void defineWeatherObject(UA_Server* server, char* locatioName) {
     UA_Server_addVariableNode(server, UA_NODEID_STRING(1, tmp), weatherId,
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "Status"),
-        UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), humAttr, NULL, NULL);
+        UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), humAttr, NULL, &humidityId);
+
+    // Humidity Properties --------------
+
+    UA_VariableAttributes rangeHumPropAttr = UA_VariableAttributes_default;
+    rangeHumPropAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Range");
+    UA_String rangeHumPropName = UA_STRING("0:100");
+    UA_Variant_setScalar(&rangeHumPropAttr.value, &rangeHumPropName, &UA_TYPES[UA_TYPES_STRING]);
+    UA_Server_addVariableNode(server, UA_NODEID_NULL, humidityId,
+        UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY), UA_QUALIFIEDNAME(1, "RangeHumidityQualifiedName"),
+        UA_NODEID_NUMERIC(0, UA_NS0ID_PROPERTYTYPE), rangeHumPropAttr, NULL, NULL);
+
+    // --------------------------------------
 }
 //Define Type
 void defineObjectTypeWeather(UA_Server* server) {
