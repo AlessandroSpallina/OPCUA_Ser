@@ -63,4 +63,7 @@
       <Filter>Source Files\include</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="rel.md" />
+  </ItemGroup>
 </Project>
