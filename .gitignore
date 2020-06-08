@@ -344,3 +344,6 @@ healthchecksdb
 
 # Linux executable
 *.out
+
+# Server Certificates
+*.der
