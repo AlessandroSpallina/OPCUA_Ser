@@ -2,47 +2,46 @@
 
 ## Overview
 
-Il progetto consiste nella realizzazione di un custom server, secondo le specifiche imposte dallo  standard IEC 62541, tramite l'utilizzo della libreria ANSI C Open62541 v1.1.
-Il server espone nodi personalizzati nell'AddressSpace. Implementa i meccanismi standard di sicurezza per la cifratura e la firma digitale.
-Implementa inoltre il meccanismo PubSub *brokerless* utilizzando il profilo di trasporto default UDP UADP, avendo comunque la possibilit‡ di adottare il profilo Eth UADP. 
+Il progetto consiste nella realizzazione di un custom server, secondo le specifiche imposte dallo standard IEC 62541, tramite l'utilizzo della libreria ANSI C Open62541 v1.1.
+Il server espone nodi personalizzati nell'AddressSpace. 
+Implementa i meccanismi standard di sicurezza per la cifratura e la firma digitale.
+Implementa inoltre il meccanismo PubSub *brokerless* utilizzando il profilo di trasporto default UDP UADP.
 
 Maggiori dettagli sulla libreria sono disponibili  
 * [Open62541](https://open62541.org/) 
 * [Open62541 - Docs](https://open62541.org/doc/current/)
 * [Open62541 - Github](https://github.com/open62541/open62541)
 
-Maggiori dettagli sui profili di trasporto sono disponibili 
+Maggiori dettagli sul profilo di trasporto sono disponibili 
 * [UDP UADP](http://opcfoundation-onlineapplications.org/ProfileReporting/index.htm?ModifyProfile.aspx?ProfileID=2faacf36-fea4-4004-be6e-89456642e831)
-* [ETH UADP](http://opcfoundation-onlineapplications.org/ProfileReporting/index.htm?ModifyProfile.aspx?ProfileID=3195952f-498d-4c3b-94bd-6b8e4fd33cc7)
 
-Il progetto Ë stato sviluppato su piattforma Windows, vista la limitazione dell'esecuzione del meccanismo PubSub esclusivamente su ambiente linux.
-La funzionalit‡ di Publisher Ë stata comunque implementata e testata su linux. Il codice prodotto Ë comunque eseguibile su Windows a meno del meccanismo PubSub
+Il progetto √® stato sviluppato su piattforma Windows ed esegue su Windows e distribuzioni Linux. 
+√â consigliata l'esecuzione su Linux qualora si voglia testare il meccanismo PubSub poich√® la libreria open62541 non supporta, attualmente, altrimenti.
 
-Di seguito Ë riportata la procedura per build delle librerie necessarie e build ed esecuzione del progetto dovuta alla carenza di informazioni reperibili sulla documentazione per lo sviluppo 
-in ambiente windows. 
+Di seguito √® riportata la procedura per build delle librerie necessarie, necessaria poich√® la documentazione √® carente di informazioni per l'installazione della libreria in ambiente windows.
+Per informazioni su compilazione e installazione delle librerie in ambiente Linux si rimanda alla [documentazione ufficiale](https://open62541.org/doc/current/building.html) ritenuta esaustiva.
 
 E' fortemente consigliato l'IDE Microsoft Visual Studio 2019, strumento utilizzato per lo sviluppo. 
-Per maggiori specifiche sulle funzionalita si rimanda a [link prelazione](vattelapesca)
+
+Specifiche tecniche sulle funzionalita del Server OPC UA sono disponibili a [link prelazione](vattelapesca)
 
 ## Getting Started
 
-Tutti i progetti, librerie comprese, sono stati compilati in modalit‡ win32 (x86).
-Compilazioni con configurazioni diverse non assicura il successo della compilazione.
+Tutti i progetti, librerie comprese, sono stati compilati in modalit√† win32 (x86).
+Configurazioni diverse non assicurano il successo della compilazione.
 
 ### Prerequisites
-La configurazione delle librerie e l'abilitazione dei relativi flag necessari per le diverse funzionalit‡ 
-Ë effettuata tramite *Cmake* disponibile al seguente [link](https://cmake.org/download/).
+La configurazione delle librerie e l'abilitazione dei relativi flag necessari per le diverse funzionalit√† 
+√® effettuata tramite *Cmake* disponibile al seguente [link](https://cmake.org/download/).
 
-Per abilitare i meccanismi di sicurezza della libreria Ë necessario scaricare ed installare la libreria **mbedtls** disponibile [qui](https://tls.mbed.org/download).
-La procedura per l'installazione Ë disponibile al paragrafo seguente. 
-
-E' possibile seguire i passi descritti in questa guida anche per l'installazione in ambiente linux, modificando opportunamente le istruzioni di sistema.
+Per abilitare i meccanismi di sicurezza della libreria √® necessario scaricare ed installare la libreria **mbedtls** disponibile [qui](https://tls.mbed.org/download).
+La procedura per l'installazione √® disponibile al paragrafo seguente. 
  
 ##### Mbedtls
 
 Mbedtls fornisce gli strumenti necessari per i meccanismi di sicurezza quali gestione delle chiavi, gestione dei certificati e degli algoritmi di  firma e cifratura.
-Una volta scaricato il file dal link al paragrafo precedente, Ë necessario estrarre il file .tgz che conterra a sua volta uns econdo .tgz anch'ssso da estrarre.
- Creare una cartella **build** all'interno del path
+Una volta scaricato il file dal link al paragrafo precedente, procedere con l'estrazione su directory arbitraria.
+Creare una cartella **build** all'interno del path
 ```
 C:\path\to\mbedtls-2.16.6-apache\mbedtls-2.16.6
 ```
@@ -53,17 +52,17 @@ C:\path\to\mbedtls-2.16.6-apache\mbedtls-2.16.6\build
 Aprire Cmake-gui e selezionare nel campo *source* il primo path e come *build* path il secondo path.
 Successivamente dare il comando *Configure* seguito da *Generate*. 
 
-**N.B.** Assicurarsi che nella finestra CmakeSetup sia selezionato come **Generator** Visual Studio 16 2019 (l'ambiente utilizzato Ë comunque personalizzabile)
+**N.B.** Assicurarsi che nella finestra CmakeSetup sia selezionato come **Generator** Visual Studio 16 2019 (l'ambiente utilizzato √® comunque personalizzabile)
 e la piattaforma di generazione **win32**
 Verificata l'assenza di errori della configurazione, si ottiene come risultato la soluzione Visual Studio al path
 
 ```
-C:\path\to\tombedtls-2.16.6-apache\mbedtls-2.16.6\visualc\VS2010
+C:\path\to\tombedtls-2.16.6-apache\mbedtls-2.16.6\build
 ```
-Aprire la soluzione **mbedtls.sln**, con Visual Studio in modalit‡ **_amministratore_** e fare build dell'intera soluzione.
-Successivamente selezionare il progetto *INSTALL* e compilare in modalit‡ *Project Only* 
+Aprire la soluzione **mbed TLS.sln**, con Visual Studio in modalit√† **_amministratore_** e fare build dell'intera soluzione.
+Successivamente selezionare il progetto *INSTALL* e compilare in modalit√† *Project Only* 
 
-Il risultato dell'intera procedura Ë l'installazione della libreria sul sistema. 
+Il risultato dell'intera procedura √® l'installazione della libreria sul sistema. 
 
 ##### Open62541
 
@@ -82,44 +81,46 @@ C:\path\to\open62541
 ```
 C:\path\to\open62541\build
 ```
-Cliccare su Configure per generare la lista di parametri da abilitare necessari alle funzionalit‡ del server.
-Il risultato dell'operazione sar‡ il seguente
-```
-inserire immagine Cmake con gli Enable
-```
-La prima cosa da fare Ë abilitare il flag 
+Cliccare su Configure per generare la lista di parametri da abilitare necessari alle funzionalit√† del server.
+Il risultato dell'operazione sar√† il seguente
+
+<details>
+  <summary>Cmake img</summary>
+  <img src="https://raw.githubusercontent.com/massimo-gollo/OPC_UA_Project/develope/res/imgs/cmake-open62541-linux.png?token=ACSJQODP5I44RBOMR4FZCZ265CTJU" alt="ca">
+  
+</details>
+
+La prima cosa da fare √® abilitare i flag di compilazione
 ```
 UA_ENABLE_ENCRYPTION
 UA_NAMESPACE_ZERO FULL
 ```
-**N.B.** su Windows non Ë possibile usufruire del meccanismo PubSub quindi Ë possibile non abilitare i seguenti flag. Su Linux invece Ë necessario abilitarli per testare PubSub
+**N.B.** su Windows non √® possibile usufruire del meccanismo PubSub, i seguenti flag sono da abilitare solo su Linux per eseguire il meccanismo PubSub
 ```
 UA_ENABLE_PUBSUB
 UA_ENABLE_PUBSUB_DELTAFRAMES
 UA_ENABLE_PUBSUB_INFORMATIONMODEL
 UA_ENABLE_PUBSUB_ETH_UADP
 ```
-Abilitati i flag Ë necessario cliccare su *configure* prima di generare la soluzione. CiÚ render‡ disponibili flag aggiuntivi nel quale inserire le dipendenze di *mbedtls*
+Abilitati i flag √® necessario cliccare su *configure* prima di generare la soluzione. Ci√≤ render√† disponibili flag aggiuntivi nel quale inserire le dipendenze di *mbedtls*
 ```
 MBEDTLS_INCLUDE_DIRS --> C:\Program Files (x86)\mbed TLS\include
 MBEDTLS_LIBRARY      --> C:\Program Files (x86)\mbed TLS\lib\mbedtls.lib
 MBEDCRYPTO_LIBRARY   --> C:\Program Files (x86)\mbed TLS\lib\mbedcrypto.lib
 MBEDX509_LIBRARY     --> C:\Program Files (x86)\mbed TLS\lib\mbedx509.lib
 ```
-Adesso Ë possibile cliccare *Generate* per generare la soluzione **open62541.sln** sul path 
+Adesso √® possibile cliccare *Generate* per generare la soluzione **open62541.sln** sul path 
 ```
  C:\path\to\open62541\build
 ```
+Aprire la soluzione con Visual Studio in modalit√† **_amministratore_** e fare build dell'intera soluzione.
+Successivamente selezionare il progetto *INSTALL* e compilare in modalit√† *Project Only* 
 
-Aprire la soluzione con Visual Studio in modalit‡ **_amministratore_** e fare build dell'intera soluzione.
-Successivamente selezionare il progetto *INSTALL* e compilare in modalit‡ *Project Only* 
-
-Come risultato si otterr‡ l'installazione della libreria sul path 
+Come risultato si otterr√† l'installazione della libreria sul path 
 ```
 C:\Program Files (x86)\open62541
 ```
-All'interno saranno disponibili i sorgenti sulla cartella `include`  e le librerie  ` .lib`  e ` .dll`
-
+All'interno saranno disponibili i sorgenti sulla cartella `include`  e le librerie ` .lib` e ` .dll`
 
 Copiare e incollare la libreria *open625421.dll* sui path *C:\Windows\SysWOW64* e *C:\Windows\System32*
 Successivamente da prompt dei comandi 
@@ -131,14 +132,13 @@ regsvr32 open62541.dll
 ```
 
 ### Configuration IDE
-Installata la libreria, per il debug dell'applicazione Ë necessario configurare l'IDE. Nello specifico
-Ë necessario linkare la libreria open62541.lib e aggiungere certificato e chiave privata come argomenti per abilitare la cifratura e la firma. 
+Installata la libreria, per il debug dell'applicazione √® necessario configurare l'IDE. Nello specifico
+√® necessario linkare la libreria open62541.lib e aggiungere certificato e chiave privata come argomenti per abilitare la cifratura e la firma. 
 
-La seguente procedura Ë stata utilizzata per l'esecuzione su Visual Studio.
 ```
 git clone https://github.com/massimo-gollo/OPC_UA_Project.git
 ``` 
-Aprire la solutione  `OPC_UA_SERVER` e successivamente cliccare su 
+Aprire la solutione `OPC_UA_SERVER` e successivamente cliccare su 
 ```
 Project > OPC_UA_SERVER Properties > C/C++ > General > Additional Include Directories > Edit >  C:\Program Files(x86)\open62541\include
 Project > OPC_UA_SERVER Properties > Linker > Input > Additional Dependencies > Edit >          C:\Program Files(x86)\open62541\lib\open62541.lib
@@ -146,16 +146,15 @@ Project > OPC_UA_SERVER Properties > Linker > Input > Additional Dependencies > 
 
 #### Build and Running
 
-Da questo momento Ë possibile compilare ed eseguire l'applicazione. 
+Da questo momento √® possibile compilare ed eseguire l'applicazione. 
 Il server accetta argomenti da riga di comando che influenzano il suo comportamento.
-In particolare, se vengono passati come command argument:
+In particolare, se vengono passati come argomenti:
 
-* Nessun argomento -> Si otterra un simple server senza alcun meccanismo di sicurezza (Basic - None). Se eseguito su Linux, il meccanismo PubSub Ë implementato di default con UrlAddress Multicast `224.0.0.22:4840` con TrasportProfile PubSub UDP UADP
-* Certificato e chiave privata -> Il server implementa tutti i meccanismi di sicurezza per firma e cifratura. Esporr‡ diversi endpoints, uno per ogni meccanismo richiesto
-* CustomUrl -> per meccanismo PubSub sotto UDP UADP 
-* CustomUrl Ethernet -> per meccanismo PubSub sotto ETH UADP
+* Nessun argomento -> Si otterr√† un simple server senza alcun meccanismo di sicurezza (Basic - None). Se eseguito su Linux, il meccanismo PubSub √® implementato di default con UrlAddress Multicast `224.0.0.22:4840` con TrasportProfile PubSub UDP UADP
+* Certificato e chiave privata -> Il server implementa tutti i meccanismi di sicurezza per firma e cifratura. Esporr√† diversi endpoints, uno per ogni meccanismo richiesto
+* CustomUrl -> personalizzare l'url multicast per PubSub sotto UDP UADP 
 
-Da editor, l'inserimento dei command argument si ottiene sotto le opzioni 
+Da IDE VisualStudio, l'inserimento degli argomenti si ottiene dalle opzioni 
 ```
 Project > OPC_UA_SERVER Properties > General > Command Arguments > Edit > --cert [Path to cert] --key [Path to key]
 ``` 
@@ -166,41 +165,11 @@ cd path/to/Debug
 OPC_UA_Server.exe --cert path/to/Cert.der --key path/to/key .der
 ``` 
 
-Per la generazione del certificato e della chiave (file .der) si rimanda alle istruzioni fonite nella sezione [Cert Generation](https://github.com/open62541/open62541/tree/master/tools/certs)
+Per la generazione del certificato e della chiave (file .der) si rimanda alle istruzioni fonite nella sezione [Cert Generation](https://github.com/massimo-gollo/OPC_UA_Project/tree/develope/res/certs)
+
 ## Authors
 
-* **Alessandro Spallina** 
 * **Massimo Gollo** 
-
-### TODO SECTION 
-#### Connection Handling
-Specifica i parametri di connessione per la creazione e la cancellazione a runtime. Viene configurato il TransportLayer. 
-Si definisce la Struct di configurazione per Pubsub **UA_PubSubConnectionConfig** 
-di cui in seguito si far‡ l'attach all'entit‡ server. Tra i campi della struct si settta il nome della configurazione 
-(dato che Ë possibile definire pi˘ configurazioni per il transport layer), il profilo del livello di trasporto, l'addressUrl
- e il publisherId (statico) per recuperarlo poi nel subscriber.
-
-#### PublishedDataSet handling
-PublishedDataset (PDS) e PubSubConnection sono entit‡ toplevel standalone. PDS Ë il modulo incaricato di collezionare **Dataset**, 
-payload dei messaggi forniti dal publisher e consumati dal subscriber. 
-
-### Overoll objective 
+* **Alessandro Spallina** 
 
 
-E' stato realizzato un Custom ObjectType per tipizzare l'oggetto *WeatherType* per modellare tre stazioni meteo. L'oggetto weather Ë composto da 3 variabili built-in: 
-* CityName - Stringa per il nome della citt‡/stazione meteo
-* Humidity - Float per l'umidit‡
-* Temperature - Float per la temperatura
-
-```
-qui immagine 
-```
-Per ogni variabile eccetto citt‡, si specificano le propriet‡ *Range* e *UnitOfMeasurement*.
-E' stata realizzata una callback per l'aggiornamento periodico dei parametri. Idealmente sarebbe un API che raccoglie dati da una sorgente e li rende disponibili sul server. 
-Inizialmente la sorgente prevista era OpenWeatherMap, API che offre dati dalle stazioni meteo dislocate in tutto il mondo. Ai fini del progetto non Ë stato conveniente a causa della frequenza di aggiornamento lenta con conseguente
-aggiornamento del dato sul server lento. Inoltre Ë presente un limite fisico alle chiamate da poter effettuare in un arco di tempo e non sarebbe stato comunque evidente
-una variazione significativa del dato. Per questo Ë stato realizzato un dato di prova al fine di verificare il funzionamento del meccanismo di Subscribe e del meccanismo PubSub.
-
-```
-parlare della sicurezza 
-```
