@@ -107,8 +107,9 @@ void stopHandler(int sign) {
         running = false;
 }
 
+#ifdef __linux__
 int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl) {
-    #ifdef __linux__
+    
 
         config->pubsubTransportLayers =
                 (UA_PubSubTransportLayer *) UA_calloc(2, sizeof(UA_PubSubTransportLayer));
@@ -117,14 +118,7 @@ int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transp
                 return EXIT_FAILURE;
         }
         config->pubsubTransportLayers[0] = UA_PubSubTransportLayerUDPMP();
-        config->pubsubTransportLayersSize++;
-
-    #ifdef UA_ENABLE_PUBSUB_ETH_UADP
-        config->pubsubTransportLayers[1] = UA_PubSubTransportLayerEthernet();
-        config->pubsubTransportLayersSize++;
-    #endif
-
-    #endif
+        config->pubsubTransportLayersSize++;    
 
         UA_NodeId connectionIdent, publishedDataSetIdent, writerGroupIdent;
 
@@ -138,6 +132,7 @@ int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transp
         addWriterGroup(server, connectionIdent, &writerGroupIdent, "WriterGroup1");
         addDataSetWriter(server, publishedDataSetIdent, writerGroupIdent, "DataSetWriter1");
 }
+#endif
 
 int main(int argc, char *argv[]) {
 
@@ -155,7 +150,7 @@ int main(int argc, char *argv[]) {
                 UA_ByteString certificate = loadFile(appConf.certPath);
                 UA_ByteString privateKey = loadFile(appConf.keyPath);
 
-                retval = UA_ServerConfig_setDefaultWithSecurityPolicies(config, 4040,
+                retval = UA_ServerConfig_setDefaultWithSecurityPolicies(config, 4840,
                                                                         &certificate, &privateKey, NULL, 0, NULL, 0, NULL, 0);
         } else {
                 retval = UA_ServerConfig_setDefault(config);

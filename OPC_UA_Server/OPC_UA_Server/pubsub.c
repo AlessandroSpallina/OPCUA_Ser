@@ -12,11 +12,11 @@
 
 #include "pubsub.h"
 
-
+#ifdef __linux__
 // ritorna per riferimento la connectionIdent
 void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_NetworkAddressUrlDataType *networkAddressUrl, UA_NodeId *connectionIdent, char *connectionName){
 
-    #ifdef __linux__
+    
         UA_PubSubConnectionConfig connectionConfig;
 
         memset(&connectionConfig, 0, sizeof(connectionConfig));
@@ -29,10 +29,9 @@ void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_Netw
         connectionConfig.publisherId.string = UA_STRING(connectionName);
         UA_Server_addPubSubConnection(server, &connectionConfig, connectionIdent);
 
-    #elif _WIN32
-        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "addPubSubConnection not supported on windows");
-    #endif
+  
 }
+#endif
 
 /**
  * **PublishedDataSet handling**
