@@ -166,6 +166,7 @@ int main(int argc, char *argv[]) {
                 return retval == UA_STATUSCODE_GOOD ? EXIT_SUCCESS : EXIT_FAILURE;
         }
 
+    #ifdef __linux__
         UA_String transportProfile;
         UA_NetworkAddressUrlDataType networkAddressUrl = {UA_STRING_NULL, UA_STRING("opc.udp://224.0.0.22:4840/")};
 
@@ -181,6 +182,7 @@ int main(int argc, char *argv[]) {
         }
 
         configurePubSub(server, config, transportProfile, networkAddressUrl);
+    #endif
 
         /*Prova con ObjectTypeCustom*/
 
