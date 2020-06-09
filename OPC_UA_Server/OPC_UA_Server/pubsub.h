@@ -1,6 +1,7 @@
 #pragma once
 #include <open62541/types.h>
 #include <open62541/server.h>
+#include <open62541/types_generated.h>
 
 void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_NetworkAddressUrlDataType *networkAddressUrl, UA_NodeId *connectionIdent, char *connectionName);
 void addPublishedDataSet(UA_Server *server, UA_NodeId *publishedDataSetIdent, char* PDSName);

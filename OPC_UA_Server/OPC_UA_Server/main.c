@@ -74,13 +74,13 @@ void printWelcome() {
         if (appConf.usingUdpUadp) {
                 printf("* Enabled PubSub with UDP UADP ");
         #ifdef _WIN32
-                printf(" (not supported on Windows)")
+                printf(" (not supported on Windows)");
         #endif
                 printf("\n");
                 if (appConf.customUrl != NULL) {
                         printf("* UDP UADP custom url enabled ");
             #ifdef _WIN32
-                        printf(" (not supported on Windows)")
+                        printf(" (not supported on Windows)");
             #endif
                         printf("\n");
                 }
@@ -88,13 +88,13 @@ void printWelcome() {
         if (appConf.usingEthUadp) {
                 printf("* Enabled PubSub with ETH UADP ");
         #ifdef _WIN32
-                printf(" (not supported on Windows)")
+                printf(" (not supported on Windows)");
         #endif
                 printf("\n");
 
                 printf("* ETH UADP custom url with network interface enabled ");
         #ifdef _WIN32
-                printf(" (not supported on Windows)")
+                printf(" (not supported on Windows)");
         #endif
                 printf("\n");
 
