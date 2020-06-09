@@ -192,9 +192,9 @@ int main(int argc, char *argv[]) {
         defineWeatherObject(server, "Enna");
         defineWeatherObject(server, "Monciuffi");
 
-        UA_Server_addRepeatedCallback(server, updateValueCallback, (void *) "Catania", 2000, NULL);
-        UA_Server_addRepeatedCallback(server, updateValueCallback, (void*) "Enna", 2000, NULL);
-        UA_Server_addRepeatedCallback(server, updateValueCallback, (void*) "Monciuffi", 2000, NULL);
+        UA_Server_addRepeatedCallback(server, updateValueCallback, (void *) "Catania", 30000, NULL);
+        UA_Server_addRepeatedCallback(server, updateValueCallback, (void*) "Enna", 30000, NULL);
+        UA_Server_addRepeatedCallback(server, updateValueCallback, (void*) "Monciuffi", 30000, NULL);
 
         signal(SIGINT, stopHandler);
         signal(SIGTERM, stopHandler);
