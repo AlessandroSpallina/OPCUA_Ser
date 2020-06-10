@@ -69,8 +69,8 @@ Il risultato dell'intera procedura è l'installazione della libreria sul sistema
 Per la compilazione di Open62541, su una directory arbitraria
 ```
 git clone https://github.com/open62541/open62541.git
-git submodule update --init --recursive
 cd open62541
+git submodule update --init --recursive
 mkdir build
 ``` 
 Aprire Cmake-gui e selezionare come *source* il path
