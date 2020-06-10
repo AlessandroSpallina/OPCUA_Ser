@@ -5,6 +5,5 @@
 
 UA_NodeId defineObjectTypeWeather(UA_Server* server);
 UA_NodeId defInstanceWeather(UA_Server* server, char* locatioName, UA_NodeId wtype);
-void addCurrentTemperatureSourceVariable(UA_Server* server, UA_NodeId parentId, char* locatioName);
-
+UA_NodeId defineWeatherObjectAsDataSource(UA_Server* server);
 

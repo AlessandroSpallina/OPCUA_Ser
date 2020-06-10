@@ -21,15 +21,6 @@
     <ClCompile Include="datasource.c">
       <Filter>Source Files\trash</Filter>
     </ClCompile>
-    <ClCompile Include="main_old.c">
-      <Filter>Source Files\trash</Filter>
-    </ClCompile>
-    <ClCompile Include="server_objects.c">
-      <Filter>Source Files\trash</Filter>
-    </ClCompile>
-    <ClCompile Include="test.c">
-      <Filter>Source Files\trash</Filter>
-    </ClCompile>
     <ClCompile Include="TypeDefinition.c">
       <Filter>Source Files\trash</Filter>
     </ClCompile>
@@ -41,9 +32,6 @@
     </ClCompile>
     <ClCompile Include="utils.c">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="server_encryption.c">
-      <Filter>Source Files\trash</Filter>
     </ClCompile>
     <ClCompile Include="informationmodel.c">
       <Filter>Source Files</Filter>

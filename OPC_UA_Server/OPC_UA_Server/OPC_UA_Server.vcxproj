@@ -20,11 +20,7 @@
   <ItemGroup>
     <ClCompile Include="datasource.c" />
     <ClCompile Include="informationmodel.c" />
-    <ClCompile Include="main_old.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="server_encryption.c" />
-    <ClCompile Include="server_objects.c" />
-    <ClCompile Include="test.c" />
     <ClCompile Include="TypeDefinition.c" />
     <ClCompile Include="utils.c" />
     <ClCompile Include="working_subtype.c" />

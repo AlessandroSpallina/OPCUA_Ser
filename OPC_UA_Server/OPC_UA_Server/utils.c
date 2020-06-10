@@ -2,6 +2,7 @@
 
 #include <open62541/types.h>
 #include <open62541/types_generated_handling.h>
+#include <open62541/server.h>
 
 /* loadFile parses the certificate file.
  *
@@ -34,4 +35,33 @@ UA_ByteString loadFile(const char *path) {
         fclose(fp);
 
         return fileContents;
+}
+
+// This function generates fake temperature and humidity
+void updateValueCallback(UA_Server* server, void* data) {
+    static UA_Float currentTemperature = 20.0, currentHumidity = 50.0;
+    char temperatureNodeName[120], humidityNodeName[120];
+    UA_Variant value;
+    UA_NodeId currentNodeId;
+
+    UA_Float deltaTemperature = (UA_Float)(rand() % 10 / 10.0);
+    rand() % 2 ? fmodf((currentTemperature -= deltaTemperature), 50.0) : fmodf((currentTemperature += deltaTemperature), 50.0);
+
+    UA_Float deltaHumidity = (UA_Float)(rand() % 10 / 10.0);
+    rand() % 2 ? fabs(fmodf((currentHumidity -= deltaHumidity), 100.0)) : fabs(fmodf((currentHumidity += deltaHumidity), 100.0));
+
+    sprintf(temperatureNodeName, "weather-%s-temperature", (char*)data);
+    sprintf(humidityNodeName, "weather-%s-humidity", (char*)data);
+
+    UA_Variant_setScalar(&value, &currentTemperature, &UA_TYPES[UA_TYPES_FLOAT]);
+    currentNodeId = UA_NODEID_STRING(1, temperatureNodeName);
+    UA_Server_writeValue(server, currentNodeId, value);
+
+    UA_Variant_setScalar(&value, &currentHumidity, &UA_TYPES[UA_TYPES_FLOAT]);
+    currentNodeId = UA_NODEID_STRING(1, humidityNodeName);
+    UA_Server_writeValue(server, currentNodeId, value);
+
+#if DEBUG
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "updateValueCallback");
+#endif
 }
