@@ -210,7 +210,7 @@ void updateValueCallback(UA_Server* server, void* data) {
 //}
 
 
-void defineObjectTypeWeather(UA_Server* server) {
+UA_NodeId defineObjectTypeWeather(UA_Server* server) {
     UA_NodeId weatherId;
     //Definizione dell'oggetto weatherType
     UA_ObjectTypeAttributes otAttr = UA_ObjectTypeAttributes_default;
@@ -230,7 +230,7 @@ void defineObjectTypeWeather(UA_Server* server) {
     UA_String nameInizialize = UA_STRING(" ");
     UA_Variant_setScalar(&vAttr.value, &nameInizialize, &UA_TYPES[UA_TYPES_STRING]);
     UA_Server_addVariableNode(server, UA_NODEID_NULL,
-        UA_NODEID_STRING(1, "weather-type"), UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+        weatherId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "cityname-variable"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), vAttr, NULL, &cityNameId);
 
     UA_Server_addReference(server, cityNameId,
@@ -246,7 +246,7 @@ void defineObjectTypeWeather(UA_Server* server) {
     UA_Float Tmp = 0.0;
     UA_Variant_setScalar(&tmpAttr.value, &Tmp, &UA_TYPES[UA_TYPES_FLOAT]);
     UA_Server_addVariableNode(server, UA_NODEID_NULL,
-        UA_NODEID_STRING(1, "weather-type"), UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+        weatherId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "temperature-variable"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), tmpAttr, NULL, &tempId);
 
     UA_Server_addReference(server, tempId,
@@ -260,10 +260,81 @@ void defineObjectTypeWeather(UA_Server* server) {
     UA_Float Hum = 0.0;
     UA_Variant_setScalar(&humAttr.value, &Tmp, &UA_TYPES[UA_TYPES_FLOAT]);
     UA_Server_addVariableNode(server, UA_NODEID_NULL,
-        UA_NODEID_STRING(1, "weather-type"), UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+        weatherId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "humidity-variable"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), humAttr, NULL, &humId);
 
     UA_Server_addReference(server, humId,
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASMODELLINGRULE),
         UA_EXPANDEDNODEID_NUMERIC(0, UA_NS0ID_MODELLINGRULE_MANDATORY), true);
+    return weatherId;
 }
+
+UA_StatusCode
+WeatherTypeConstructor(UA_Server* server,
+    const UA_NodeId* sessionId, void* sessionContext,
+    const UA_NodeId* typeId, void* typeContext,
+    const UA_NodeId* nodeId, void** nodeContext, char* cname) {
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "New weather Station created");
+
+    /* Find the NodeId of the status child variable */
+    UA_RelativePathElement rpe;
+    UA_RelativePathElement_init(&rpe);
+    rpe.referenceTypeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT);
+    rpe.isInverse = false;
+    rpe.includeSubtypes = false;
+    rpe.targetName = UA_QUALIFIEDNAME(1, "cityname-variable");
+    
+
+
+
+    UA_BrowsePath bp;
+    UA_BrowsePath_init(&bp);
+    bp.startingNode = *nodeId;
+    bp.relativePath.elementsSize = 1;
+    bp.relativePath.elements = &rpe;
+    
+
+    UA_BrowsePathResult bpr =
+        UA_Server_translateBrowsePathToNodeIds(server, &bp);
+   
+    if (bpr.statusCode != UA_STATUSCODE_GOOD ||
+        bpr.targetsSize < 1)
+        return bpr.statusCode;    
+
+    /* Set the status value */
+    UA_String cityName = UA_STRING("Bella");
+    UA_Variant value;
+    UA_Variant_setScalar(&value, &cityName, &UA_TYPES[UA_TYPES_STRING]);
+    UA_Server_writeValue(server, bpr.targets[0].targetId.nodeId, value);
+    UA_BrowsePathResult_clear(&bpr);
+
+    /* At this point we could replace the node context .. */
+
+    return UA_STATUSCODE_GOOD;
+}
+
+void
+addWeatherTypeConstructor(UA_Server* server, UA_NodeId typeId) {
+    char* cname = "Bella";
+    UA_NodeTypeLifecycle lifecycle;
+    lifecycle.constructor = WeatherTypeConstructor,cname;    
+    lifecycle.destructor = NULL;
+    UA_Server_setNodeTypeLifecycle(server, typeId, lifecycle);
+}
+
+
+void defInstanceWeather(UA_Server* server, char* locatioName, UA_NodeId wtype) {                  
+           
+            UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
+            oAttr.displayName = UA_LOCALIZEDTEXT("en-US", locatioName);
+            oAttr.description = UA_LOCALIZEDTEXT("en-US", "IstanceCity");
+            UA_Server_addObjectNode(server, UA_NODEID_NULL,
+                                    UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
+                                    UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
+                                    UA_QUALIFIEDNAME(1, locatioName), wtype,
+                                    oAttr, NULL, NULL);
+    
+            //TODO capire come accedere alle variabili di un Object istanziato partendo da BaseObjectType proprietario (da questa istanza dice ale)
+    
+    
+    }

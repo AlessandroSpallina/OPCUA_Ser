@@ -101,6 +101,8 @@ int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transp
 }
 
 int main(int argc, char *argv[]) {
+    
+        UA_NodeId wtype; 
 
         parseArgument(argc, argv);
 
@@ -141,9 +143,9 @@ int main(int argc, char *argv[]) {
 
         /*Prova con ObjectTypeCustom*/
 
-        defineObjectTypeWeather(server);
-
-        //defInstanceWeather(server, "Catania");
+        wtype = defineObjectTypeWeather(server);
+        addWeatherTypeConstructor(server, wtype); 
+        defInstanceWeather(server, "Catania",wtype);
 
         /* Prova con l'istanza diretta di oggetti */
         //defineWeatherObject(server, "Catania");
