@@ -1,15 +1,11 @@
 #include <open62541/plugin/log_stdout.h>
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
+#include <open62541/plugin/pubsub_udp.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-
-#ifdef __linux__
-#include <open62541/plugin/pubsub_ethernet.h>
-#include <open62541/plugin/pubsub_udp.h>
-#endif
 
 #include "utils.h"
 #include "informationmodel.h"
@@ -20,20 +16,18 @@ volatile UA_Boolean running = true;
 struct applicationConfig {
         bool encryption;
         bool usingUdpUadp;
-        bool usingEthUadp;
         char *certPath;
         char *keyPath;
-        char *customNetworkInterface;
         char *customUrl;
-} appConf = {false, true, false, NULL, NULL}; // default appConfig
+} appConf = {false, true, NULL, NULL, NULL}; // default appConfig
 
-// controlla che l'usage sia del tipo: server.exe [--cert <pathCertificato> --key <pathChiave>] [--url <customUdpUadpUrl>] | [[--url <customEthUadpUrl>] [--interface <customInterface>]]
+// controlla che l'usage sia del tipo: server.exe [--cert <pathCertificato> --key <pathChiave>] [--url <customUdpUadpUrl>] 
 void parseArgument(int argc, char* argv[]) {
         if (argc == 1)
                 return;
 
         if (strncmp(argv[1], "-h", 2) == 0) {
-                fprintf(stderr, "Usage: server.exe [--cert <pathCertificato> --key <pathChiave>] [--url <customUdpUadpUrl>] | [[--url <customEthUadpUrl>] [--interface <customInterface>]]\n");
+                fprintf(stderr, "Usage: server.exe [--cert <pathCertificato> --key <pathChiave>] [--url <customUdpUadpUrl>]\n");
                 exit(EXIT_SUCCESS);
         }
 
@@ -50,14 +44,6 @@ void parseArgument(int argc, char* argv[]) {
                                 appConf.usingUdpUadp = true;
                                 appConf.customUrl = argv[i+1];
                                 i += 1;
-                        } else if(strncmp(argv[i+1], "opc.eth://", 10) == 0) {
-                                if (strncmp(argv[i+2], "--interface", 11) == 0) {
-                                        appConf.usingUdpUadp = false;
-                                        appConf.usingEthUadp = true;
-                                        appConf.customUrl = argv[i+1];
-                                        appConf.customNetworkInterface = argv[i+3];
-                                        i += 3;
-                                }
                         }
                 }
         }
@@ -72,32 +58,14 @@ void printWelcome() {
                 printf("    - Key at %s\n", appConf.keyPath);
         }
         if (appConf.usingUdpUadp) {
-                printf("* Enabled PubSub with UDP UADP ");
-        #ifdef _WIN32
-                printf(" (not supported on Windows)");
-        #endif
-                printf("\n");
+                printf("* Enabled PubSub with UDP UADP\n");
                 if (appConf.customUrl != NULL) {
-                        printf("* UDP UADP custom url enabled ");
-            #ifdef _WIN32
-                        printf(" (not supported on Windows)");
-            #endif
-                        printf("\n");
+                        printf("* UDP UADP custom url enabled\n");
+                        printf("    - Custom url %s\n", appConf.customUrl);
                 }
-        }
-        if (appConf.usingEthUadp) {
-                printf("* Enabled PubSub with ETH UADP ");
-        #ifdef _WIN32
-                printf(" (not supported on Windows)");
-        #endif
-                printf("\n");
-
-                printf("* ETH UADP custom url with network interface enabled ");
-        #ifdef _WIN32
-                printf(" (not supported on Windows)");
-        #endif
-                printf("\n");
-
+                else {
+                        printf("    - Default url opc.udp://224.0.0.22:4840/\n");
+                }
         }
         printf("\n");
 }
@@ -107,7 +75,6 @@ void stopHandler(int sign) {
         running = false;
 }
 
-#ifdef __linux__
 int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl) {
     
 
@@ -132,7 +99,6 @@ int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transp
         addWriterGroup(server, connectionIdent, &writerGroupIdent, "WriterGroup1");
         addDataSetWriter(server, publishedDataSetIdent, writerGroupIdent, "DataSetWriter1");
 }
-#endif
 
 int main(int argc, char *argv[]) {
 
@@ -150,8 +116,7 @@ int main(int argc, char *argv[]) {
                 UA_ByteString certificate = loadFile(appConf.certPath);
                 UA_ByteString privateKey = loadFile(appConf.keyPath);
 
-                retval = UA_ServerConfig_setDefaultWithSecurityPolicies(config, 4840,
-                                                                        &certificate, &privateKey, NULL, 0, NULL, 0, NULL, 0);
+                retval = UA_ServerConfig_setDefaultWithSecurityPolicies(config, 4840, &certificate, &privateKey, NULL, 0, NULL, 0, NULL, 0);
         } else {
                 retval = UA_ServerConfig_setDefault(config);
         }
@@ -161,23 +126,18 @@ int main(int argc, char *argv[]) {
                 return retval == UA_STATUSCODE_GOOD ? EXIT_SUCCESS : EXIT_FAILURE;
         }
 
-    #ifdef __linux__
-        UA_String transportProfile;
-        UA_NetworkAddressUrlDataType networkAddressUrl = {UA_STRING_NULL, UA_STRING("opc.udp://224.0.0.22:4840/")};
 
         if (appConf.usingUdpUadp) {
-                transportProfile = UA_STRING("http://opcfoundation.org/UA-Profile/Transport/pubsub-udp-uadp");
-                if (appConf.customUrl != NULL) {
-                        networkAddressUrl.url = UA_STRING(appConf.customUrl);
-                }
-        } else if (appConf.usingEthUadp) {
-                transportProfile = UA_STRING("http://opcfoundation.org/UA-Profile/Transport/pubsub-eth-uadp");
-                networkAddressUrl.url = UA_STRING(appConf.customUrl);
-                networkAddressUrl.networkInterface = UA_STRING(appConf.customNetworkInterface);
-        }
 
-        configurePubSub(server, config, transportProfile, networkAddressUrl);
-    #endif
+            UA_String transportProfile = UA_STRING("http://opcfoundation.org/UA-Profile/Transport/pubsub-udp-uadp");
+            UA_NetworkAddressUrlDataType networkAddressUrl = { UA_STRING_NULL, UA_STRING("opc.udp://224.0.0.22:4840/") };
+
+            if (appConf.customUrl != NULL) {
+                networkAddressUrl.url = UA_STRING(appConf.customUrl);
+            }
+
+            configurePubSub(server, config, transportProfile, networkAddressUrl);
+        }
 
         /*Prova con ObjectTypeCustom*/
 

@@ -2,17 +2,10 @@
     Publish informations from the information model over UDP multicast using UADP encoding
  */
 #include <open62541/plugin/log_stdout.h>
-
-#ifdef __linux__
-
-#include <open62541/plugin/pubsub_ethernet.h>
 #include <open62541/plugin/pubsub_udp.h>
-
-#endif
 
 #include "pubsub.h"
 
-#ifdef __linux__
 // ritorna per riferimento la connectionIdent
 void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_NetworkAddressUrlDataType *networkAddressUrl, UA_NodeId *connectionIdent, char *connectionName){
 
@@ -31,7 +24,6 @@ void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_Netw
 
   
 }
-#endif
 
 /**
  * **PublishedDataSet handling**
@@ -43,7 +35,6 @@ void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_Netw
 
 // Ritorna "per riferimento" il publishedDataSetIdent
 void addPublishedDataSet(UA_Server *server, UA_NodeId *publishedDataSetIdent, char* PDSName) {
-    #ifdef __linux__
         /* The PublishedDataSetConfig contains all necessary public
          * informations for the creation of a new PublishedDataSet */
         UA_PublishedDataSetConfig publishedDataSetConfig;
@@ -52,10 +43,6 @@ void addPublishedDataSet(UA_Server *server, UA_NodeId *publishedDataSetIdent, ch
         publishedDataSetConfig.name = UA_STRING(PDSName);
         /* Create new PublishedDataSet based on the PublishedDataSetConfig. */
         UA_Server_addPublishedDataSet(server, &publishedDataSetConfig, publishedDataSetIdent);
-
-    #elif _WIN32
-        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "addPublishedDataSet not supported on windows");
-    #endif
 }
 
 /**
@@ -66,7 +53,6 @@ void addPublishedDataSet(UA_Server *server, UA_NodeId *publishedDataSetIdent, ch
 
 // Aggiunge come field il campo value della variableId in ingresso
 void addDataSetField(UA_Server *server, UA_NodeId publishedDataSetIdent, char *fieldName, UA_NodeId variableID) {
-    #ifdef __linux__
         /* Add a field to the previous created PublishedDataSet */
         UA_NodeId dataSetFieldIdent;
         UA_DataSetFieldConfig dataSetFieldConfig;
@@ -78,9 +64,6 @@ void addDataSetField(UA_Server *server, UA_NodeId publishedDataSetIdent, char *f
         dataSetFieldConfig.field.variable.publishParameters.attributeId = UA_ATTRIBUTEID_VALUE;
         UA_Server_addDataSetField(server, publishedDataSetIdent,
                                   &dataSetFieldConfig, &dataSetFieldIdent);
-    #elif _WIN32
-        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "addPublishedDataSet not supported on windows");
-    #endif
 }
 
 /**
@@ -91,7 +74,6 @@ void addDataSetField(UA_Server *server, UA_NodeId publishedDataSetIdent, char *f
 
 // Ritorna per riferimento la writerGroupIdent
 void addWriterGroup(UA_Server *server, UA_NodeId connectionIdent, UA_NodeId *writerGroupIdent, char *writerGroupName) {
-    #ifdef __linux__
         /* Now we create a new WriterGroupConfig and add the group to the existing
          * PubSubConnection. */
         UA_WriterGroupConfig writerGroupConfig;
@@ -119,11 +101,6 @@ void addWriterGroup(UA_Server *server, UA_NodeId connectionIdent, UA_NodeId *wri
         UA_Server_addWriterGroup(server, connectionIdent, &writerGroupConfig, writerGroupIdent);
         UA_Server_setWriterGroupOperational(server, *writerGroupIdent);
         UA_UadpWriterGroupMessageDataType_delete(writerGroupMessage);
-
-    #elif _WIN32
-        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "addWriterGroup not supported on windows");
-    #endif
-
 }
 
 /**
@@ -133,7 +110,6 @@ void addWriterGroup(UA_Server *server, UA_NodeId connectionIdent, UA_NodeId *wri
  * linked to exactly one PDS and contains additional informations for the
  * message generation. */
 void addDataSetWriter(UA_Server *server, UA_NodeId publishedDataSetIdent, UA_NodeId writerGroupIdent, char *dataSetWriter) {
-    #ifdef __linux__
         /* We need now a DataSetWriter within the WriterGroup. This means we must
          * create a new DataSetWriterConfig and add call the addWriterGroup function. */
         UA_NodeId dataSetWriterIdent;
@@ -144,7 +120,4 @@ void addDataSetWriter(UA_Server *server, UA_NodeId publishedDataSetIdent, UA_Nod
         dataSetWriterConfig.keyFrameCount = 10;
         UA_Server_addDataSetWriter(server, writerGroupIdent, publishedDataSetIdent,
                                    &dataSetWriterConfig, &dataSetWriterIdent);
-    #elif _WIN32
-        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "addDataSetWriter not supported on windows");
-    #endif
 }
