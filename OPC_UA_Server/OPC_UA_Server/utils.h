@@ -6,4 +6,4 @@
 
 UA_ByteString loadFile(const char* path);
 
-void updateValueCallback(UA_Server* server, void* data);
+//void updateValueCallback(UA_Server* server, void* data);

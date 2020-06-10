@@ -6,8 +6,7 @@
 
 //define callback fore dataSource Humidity and Temp 
 
-static UA_StatusCode
-readCurrentTemperature(UA_Server* server,
+UA_StatusCode readCurrentTemperature(UA_Server* server,
     const UA_NodeId* sessionId, void* sessionContext,
     const UA_NodeId* nodeId, void* nodeContext,
     UA_Boolean sourceTimeStamp, const UA_NumericRange* range,
@@ -22,8 +21,7 @@ readCurrentTemperature(UA_Server* server,
     return UA_STATUSCODE_GOOD;
 }
 
-static UA_StatusCode
-writeCurrentTemperature(UA_Server* server,
+UA_StatusCode writeCurrentTemperature(UA_Server* server,
     const UA_NodeId* sessionId, void* sessionContext,
     const UA_NodeId* nodeId, void* nodeContext,
     const UA_NumericRange* range, const UA_DataValue* data) {
@@ -32,8 +30,7 @@ writeCurrentTemperature(UA_Server* server,
     return UA_STATUSCODE_BADINTERNALERROR;
 }
 
-static UA_StatusCode
-readCurrentHumidity(UA_Server* server,
+UA_StatusCode readCurrentHumidity(UA_Server* server,
     const UA_NodeId* sessionId, void* sessionContext,
     const UA_NodeId* nodeId, void* nodeContext,
     UA_Boolean sourceTimeStamp, const UA_NumericRange* range,
@@ -42,19 +39,15 @@ readCurrentHumidity(UA_Server* server,
     static UA_Float currentHumidity = 50.0;
     UA_Float deltaHumidity = (UA_Float)(rand() % 10 / 10.0);
     rand() % 2 ? fabs(fmodf((currentHumidity -= deltaHumidity), 100.0)) : fabs(fmodf((currentHumidity += deltaHumidity), 100.0));
-    UA_Variant_setScalarCopy(&dataValue->value, &currentHumidity,
-        &UA_TYPES[UA_TYPES_FLOAT]);
+    UA_Variant_setScalarCopy(&dataValue->value, &currentHumidity, &UA_TYPES[UA_TYPES_FLOAT]);
     dataValue->hasValue = true;
+
+    //printf("ciao\n");
     return UA_STATUSCODE_GOOD;
 }
 
-static UA_StatusCode
-writeCurrentHumidity(UA_Server* server,
-    const UA_NodeId* sessionId, void* sessionContext,
-    const UA_NodeId* nodeId, void* nodeContext,
-    const UA_NumericRange* range, const UA_DataValue* data) {
-    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
-        "Changing the system time is not implemented");
+UA_StatusCode writeCurrentHumidity(UA_Server* server, const UA_NodeId* sessionId, void* sessionContext, const UA_NodeId* nodeId, void* nodeContext, const UA_NumericRange* range, const UA_DataValue* data) {
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Changing the system time is not implemented");
     return UA_STATUSCODE_BADINTERNALERROR;
 }
 
@@ -137,7 +130,6 @@ UA_NodeId defineWeatherObjectAsDataSource(UA_Server* server) {
 }
 
 //Define Instance of WeatherObject -> set runtime CityName Variable
-
 UA_NodeId defInstanceWeather(UA_Server* server, char* locatioName, UA_NodeId wtype) {
             UA_NodeId parentNodeIstance; 
             UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
@@ -176,7 +168,7 @@ UA_NodeId defInstanceWeather(UA_Server* server, char* locatioName, UA_NodeId wty
             UA_Server_writeValue(server, bpr.targets[0].targetId.nodeId, value);
             UA_BrowsePathResult_clear(&bpr); 
             return parentNodeIstance; 
-       }
+ }
 
 
 
