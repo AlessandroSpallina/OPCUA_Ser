@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\Desktop\WORKSPACE\Cavalieri\open62541\examples\pubsub\tutorial_pubsub_subscribe.c">
+    <ClCompile Include="main.c">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>
