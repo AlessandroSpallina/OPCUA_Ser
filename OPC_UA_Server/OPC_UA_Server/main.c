@@ -144,17 +144,17 @@ int main(int argc, char *argv[]) {
         /*Prova con ObjectTypeCustom*/
 
         wtype = defineObjectTypeWeather(server);
-        addWeatherTypeConstructor(server, wtype); 
-        defInstanceWeather(server, "Catania",wtype);
+       UA_NodeId first = defInstanceWeather(server, "Catania",wtype);
+       UA_NodeId second = defInstanceWeather(server, "Monciuffi", wtype);
+       if ( (UA_NodeId_isNull(&first)) || (UA_NodeId_isNull(&second)) ) {
+           UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_SERVER, "Failed Instanciate Object");
+           running = false;
+       }
+       else {
+           addCurrentTemperatureSourceVariable(server, first, "Catania"); 
+           addCurrentTemperatureSourceVariable(server, second, "Monciuffi"); 
+       }
 
-        /* Prova con l'istanza diretta di oggetti */
-        //defineWeatherObject(server, "Catania");
-        //defineWeatherObject(server, "Enna");
-        //defineWeatherObject(server, "Monciuffi");
-
-        //UA_Server_addRepeatedCallback(server, updateValueCallback, (void *) "Catania", 30000, NULL);
-        //UA_Server_addRepeatedCallback(server, updateValueCallback, (void*) "Enna", 30000, NULL);
-        //UA_Server_addRepeatedCallback(server, updateValueCallback, (void*) "Monciuffi", 30000, NULL);
 
         signal(SIGINT, stopHandler);
         signal(SIGTERM, stopHandler);

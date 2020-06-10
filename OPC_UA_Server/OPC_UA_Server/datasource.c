@@ -1,177 +1,221 @@
-    /* This work is licensed under a Creative Commons CCZero 1.0 Universal License.
-     * See http://creativecommons.org/publicdomain/zero/1.0/ for more information. */
-
-     /**
-      * Connecting a Variable with a Physical Process
-      * ---------------------------------------------
-      *
-      * In OPC UA-based architectures, servers are typically situated near the source
-      * of information. In an industrial context, this translates into servers being
-      * near the physical process and clients consuming the data at runtime. In the
-      * previous tutorial, we saw how to add variables to an OPC UA information
-      * model. This tutorial shows how to connect a variable to runtime information,
-      * for example from measurements of a physical process. For simplicity, we take
-      * the system clock as the underlying "process".
-      *
-      * The following code snippets are each concerned with a different way of
-      * updating variable values at runtime. Taken together, the code snippets define
-      * a compilable source file.
-      *
-      * Updating variables manually
-      * ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      * As a starting point, assume that a variable for a value of type
-      * :ref:`datetime` has been created in the server with the identifier
-      * "ns=1,s=current-time". Assuming that our applications gets triggered when a
-      * new value arrives from the underlying process, we can just write into the
-      * variable. */
-
-#include <open62541/plugin/log_stdout.h>
-#include <open62541/server.h>
-#include <open62541/server_config_default.h>
-
-#include <signal.h>
-#include <stdlib.h>
-
-    static void
-    updateCurrentTime(UA_Server * server) {
-    UA_DateTime now = UA_DateTime_now();
-    UA_Variant value;
-    UA_Variant_setScalar(&value, &now, &UA_TYPES[UA_TYPES_DATETIME]);
-    UA_NodeId currentNodeId = UA_NODEID_STRING(1, "current-time-value-callback");
-    UA_Server_writeValue(server, currentNodeId, value);
-}
-
-static void
-addCurrentTimeVariable(UA_Server* server) {
-    UA_DateTime now = 0;
-    UA_VariableAttributes attr = UA_VariableAttributes_default;
-    attr.displayName = UA_LOCALIZEDTEXT("en-US", "Current time - value callback");
-    attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
-    UA_Variant_setScalar(&attr.value, &now, &UA_TYPES[UA_TYPES_DATETIME]);
-
-    UA_NodeId currentNodeId = UA_NODEID_STRING(1, "current-time-value-callback");
-    UA_QualifiedName currentName = UA_QUALIFIEDNAME(1, "current-time-value-callback");
-    UA_NodeId parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
-    UA_NodeId parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
-    UA_NodeId variableTypeNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE);
-    UA_Server_addVariableNode(server, currentNodeId, parentNodeId,
-        parentReferenceNodeId, currentName,
-        variableTypeNodeId, attr, NULL, NULL);
-
-    updateCurrentTime(server);
-}
-
-/**
- * Variable Value Callback
- * ^^^^^^^^^^^^^^^^^^^^^^^
- *
- * When a value changes continuously, such as the system time, updating the
- * value in a tight loop would take up a lot of resources. Value callbacks allow
- * to synchronize a variable value with an external representation. They attach
- * callbacks to the variable that are executed before every read and after every
- * write operation. */
-
-static void
-beforeReadTime(UA_Server* server,
-    const UA_NodeId* sessionId, void* sessionContext,
-    const UA_NodeId* nodeid, void* nodeContext,
-    const UA_NumericRange* range, const UA_DataValue* data) {
-    updateCurrentTime(server);
-}
-
-static void
-afterWriteTime(UA_Server* server,
-    const UA_NodeId* sessionId, void* sessionContext,
-    const UA_NodeId* nodeId, void* nodeContext,
-    const UA_NumericRange* range, const UA_DataValue* data) {
-    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
-        "The variable was updated");
-}
-
-static void
-addValueCallbackToCurrentTimeVariable(UA_Server* server) {
-    UA_NodeId currentNodeId = UA_NODEID_STRING(1, "current-time-value-callback");
-    UA_ValueCallback callback;
-    callback.onRead = beforeReadTime;
-    callback.onWrite = afterWriteTime;
-    UA_Server_setVariableNode_valueCallback(server, currentNodeId, callback);
-}
-
-/**
- * Variable Data Sources
- * ^^^^^^^^^^^^^^^^^^^^^
- *
- * With value callbacks, the value is still stored in the variable node.
- * So-called data sources go one step further. The server redirects every read
- * and write request to a callback function. Upon reading, the callback provides
- * copy of the current value. Internally, the data source needs to implement its
- * own memory management. */
-
-static UA_StatusCode
-readCurrentTime(UA_Server* server,
-    const UA_NodeId* sessionId, void* sessionContext,
-    const UA_NodeId* nodeId, void* nodeContext,
-    UA_Boolean sourceTimeStamp, const UA_NumericRange* range,
-    UA_DataValue* dataValue) {
-    UA_DateTime now = UA_DateTime_now();
-    UA_Variant_setScalarCopy(&dataValue->value, &now,
-        &UA_TYPES[UA_TYPES_DATETIME]);
-    dataValue->hasValue = true;
-    return UA_STATUSCODE_GOOD;
-}
-
-static UA_StatusCode
-writeCurrentTime(UA_Server* server,
-    const UA_NodeId* sessionId, void* sessionContext,
-    const UA_NodeId* nodeId, void* nodeContext,
-    const UA_NumericRange* range, const UA_DataValue* data) {
-    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
-        "Changing the system time is not implemented");
-    return UA_STATUSCODE_BADINTERNALERROR;
-}
-
-//static void
-//addCurrentTimeDataSourceVariable(UA_Server* server) {
-//    UA_VariableAttributes attr = UA_VariableAttributes_default;
-//    attr.displayName = UA_LOCALIZEDTEXT("en-US", "Current time - data source");
-//    attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
+﻿//void defineWeatherObject(UA_Server* server, char* locatioName) {
+//        char tmp[120];
 //
-//    UA_NodeId currentNodeId = UA_NODEID_STRING(1, "current-time-datasource");
-//    UA_QualifiedName currentName = UA_QUALIFIEDNAME(1, "current-time-datasource");
-//    UA_NodeId parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
-//    UA_NodeId parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
-//    UA_NodeId variableTypeNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE);
+//        sprintf(tmp, "weather-object-%s", locatioName);
 //
-//    UA_DataSource timeDataSource;
-//    timeDataSource.read = readCurrentTime;
-//    timeDataSource.write = writeCurrentTime;
-//    UA_Server_addDataSourceVariableNode(server, currentNodeId, parentNodeId,
-//        parentReferenceNodeId, currentName,
-//        variableTypeNodeId, attr,
-//        timeDataSource, NULL, NULL);
+//        /* get the nodeid assigned by the server */
+//        UA_NodeId weatherId = UA_NODEID_STRING(1, tmp);
+//        UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
+//        oAttr.displayName = UA_LOCALIZEDTEXT("en-US", locatioName);
+//        UA_Server_addObjectNode(server, weatherId,
+//                                UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
+//                                UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
+//                                UA_QUALIFIEDNAME(1, "weatherQualifiedName"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE),
+//                                oAttr, NULL, &weatherId);
+//
+//        memset(tmp, 0, sizeof(tmp));
+//        sprintf(tmp, "weather-%s-cityname", locatioName);
+//
+//        //Primo attributo - Nome della localit� meteo
+//        UA_VariableAttributes mnAttr = UA_VariableAttributes_default;
+//        UA_String cityName = UA_STRING(locatioName);
+//        UA_Variant_setScalar(&mnAttr.value, &cityName, &UA_TYPES[UA_TYPES_STRING]);
+//        mnAttr.displayName = UA_LOCALIZEDTEXT("en-US", "CityName");
+//        mnAttr.valueRank = UA_VALUERANK_SCALAR;
+//        UA_Server_addVariableNode(server, UA_NODEID_STRING(1, tmp), weatherId,
+//                                  UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+//                                  UA_QUALIFIEDNAME(1, "CityNameQualified"),
+//                                  UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), mnAttr, NULL, NULL);
+//
+//        //Secondo attributo - Temperatura della citt�
+//
+//        UA_VariableAttributes tmpAttr = UA_VariableAttributes_default;
+//        memset(tmp, 0, sizeof(tmp));
+//        sprintf(tmp, "weather-%s-temperature", locatioName);
+//
+//        UA_Float Tmp = 0.0;
+//        UA_Variant_setScalar(&tmpAttr.value, &Tmp, &UA_TYPES[UA_TYPES_FLOAT]);
+//        tmpAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Temperature");
+//        tmpAttr.valueRank = UA_VALUERANK_SCALAR;
+//        UA_NodeId temperatureId;
+//        UA_Server_addVariableNode(server, UA_NODEID_STRING(1, tmp), weatherId,
+//                                  UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+//                                  UA_QUALIFIEDNAME(1, "TempQUalifiedName"),
+//                                  UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), tmpAttr, NULL, &temperatureId);
+//
+//        // Temperature Properties --------------
+//
+//        UA_VariableAttributes rangePropAttr = UA_VariableAttributes_default;
+//        rangePropAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Range");
+//        rangePropAttr.valueRank = UA_VALUERANK_SCALAR;
+//        UA_String rangePropName = UA_STRING("-100:100");
+//        UA_Variant_setScalar(&rangePropAttr.value, &rangePropName, &UA_TYPES[UA_TYPES_STRING]);
+//        UA_Server_addVariableNode(server, UA_NODEID_NULL, temperatureId,
+//                                  UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY), UA_QUALIFIEDNAME(1, "RangeTemperatureQualifiedName"),
+//                                  UA_NODEID_NUMERIC(0, UA_NS0ID_PROPERTYTYPE), rangePropAttr, NULL, NULL);
+//
+//        UA_VariableAttributes unitOfMeasurementPropAttr = UA_VariableAttributes_default;
+//        unitOfMeasurementPropAttr.displayName = UA_LOCALIZEDTEXT("en-US", "UnitOfMeasurement");
+//        UA_String unitOfMeasurementPropName = UA_STRING("Celsius");
+//        UA_Variant_setScalar(&unitOfMeasurementPropAttr.value, &unitOfMeasurementPropName, &UA_TYPES[UA_TYPES_STRING]);
+//        UA_Server_addVariableNode(server, UA_NODEID_NULL, temperatureId,
+//                                  UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY), UA_QUALIFIEDNAME(1, "UnitOfMeasurementQualifiedName"),
+//                                  UA_NODEID_NUMERIC(0, UA_NS0ID_PROPERTYTYPE), unitOfMeasurementPropAttr, NULL, NULL);
+//
+//        // --------------------------------------
+//
+//
+//        //Terzo attributo - Umidit� della citt�
+//        memset(tmp, 0, sizeof(tmp));
+//        sprintf(tmp, "weather-%s-humidity", locatioName);
+//        UA_NodeId humidityId;
+//        UA_VariableAttributes humAttr = UA_VariableAttributes_default;
+//        UA_Float hum = 0.0;
+//        UA_Variant_setScalar(&humAttr.value, &hum, &UA_TYPES[UA_TYPES_FLOAT]);
+//        humAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Humidity");
+//        humAttr.valueRank = UA_VALUERANK_SCALAR;
+//        UA_Server_addVariableNode(server, UA_NODEID_STRING(1, tmp), weatherId,
+//                                  UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+//                                  UA_QUALIFIEDNAME(1, "Status"),
+//                                  UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), humAttr, NULL, &humidityId);
+//
+//        // Humidity Properties --------------
+//
+//        UA_VariableAttributes rangeHumPropAttr = UA_VariableAttributes_default;
+//        rangeHumPropAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Range");
+//        rangeHumPropAttr.valueRank = UA_VALUERANK_SCALAR;
+//        UA_String rangeHumPropName = UA_STRING("0:100");
+//        UA_Variant_setScalar(&rangeHumPropAttr.value, &rangeHumPropName, &UA_TYPES[UA_TYPES_STRING]);
+//        UA_Server_addVariableNode(server, UA_NODEID_NULL, humidityId,
+//                                  UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY), UA_QUALIFIEDNAME(1, "RangeHumidityQualifiedName"),
+//                                  UA_NODEID_NUMERIC(0, UA_NS0ID_PROPERTYTYPE), rangeHumPropAttr, NULL, NULL);
+//
+//        // --------------------------------------
 //}
-
-/** It follows the main server code, making use of the above definitions. */
-
-//static volatile UA_Boolean running = true;
-//static void stopHandler(int sign) {
-//    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_SERVER, "received ctrl-c");
-//    running = false;
+//Define Type
+//void defineObjectTypeWeather(UA_Server* server) {
+//
+//        //Definizione dell'oggetto weather. Dentro contiene variabli builtin
+//        UA_ObjectTypeAttributes otAttr = UA_ObjectTypeAttributes_default;
+//        otAttr.description = UA_LOCALIZEDTEXT("en-US", "Weather Type");
+//        otAttr.displayName = UA_LOCALIZEDTEXT("en-US", "WeatherType");
+//        UA_Server_addObjectTypeNode(server, UA_NODEID_STRING(1, "weather-type"),
+//                                    UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE),
+//                                    UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE),
+//                                    UA_QUALIFIEDNAME(1, "WeatherType"), otAttr, NULL, NULL);
+//
+//        //Primo attributo - Nome della localit� meteo
+//
+//        UA_VariableAttributes vAttr = UA_VariableAttributes_default;
+//        vAttr.description = UA_LOCALIZEDTEXT("en-US", "Name of the city for which record Temp/Hum");
+//        vAttr.displayName = UA_LOCALIZEDTEXT("en-US", "CityName");
+//        //inizialize to zero
+//        UA_String nameInizialize = UA_STRING(" ");
+//        UA_Variant_setScalar(&vAttr.value, &nameInizialize, &UA_TYPES[UA_TYPES_STRING]);
+//        UA_Server_addVariableNode(server, UA_NODEID_STRING(1, "cityname-variable"),
+//                                  UA_NODEID_STRING(1, "weather-type"), UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY),
+//                                  UA_QUALIFIEDNAME(1, "cityname-variable"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), vAttr, NULL, NULL);
+//
+//        UA_Server_addReference(server, UA_NODEID_STRING(1, "cityname-variable"),
+//                               UA_NODEID_NUMERIC(0, UA_NS0ID_HASMODELLINGRULE),
+//                               UA_EXPANDEDNODEID_NUMERIC(0, UA_NS0ID_MODELLINGRULE_MANDATORY), true);
+//
+//
+//        //Secondo attributo - Temperatura della citt�
+//
+//        UA_VariableAttributes tmpAttr = UA_VariableAttributes_default;
+//        tmpAttr.description = UA_LOCALIZEDTEXT("en-US", "TemperatureVariable of City");
+//        tmpAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Temperature");
+//        UA_Float Tmp = 0.0;
+//        UA_Variant_setScalar(&tmpAttr.value, &Tmp, &UA_TYPES[UA_TYPES_FLOAT]);
+//        UA_Server_addVariableNode(server, UA_NODEID_STRING(1, "temperature-variable"),
+//                                  UA_NODEID_STRING(1, "weather-type"), UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY),
+//                                  UA_QUALIFIEDNAME(1, "temperature-variable"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), tmpAttr, NULL, NULL);
+//
+//        UA_Server_addReference(server, UA_NODEID_STRING(1, "temperature-variable"),
+//                               UA_NODEID_NUMERIC(0, UA_NS0ID_HASMODELLINGRULE),
+//                               UA_EXPANDEDNODEID_NUMERIC(0, UA_NS0ID_MODELLINGRULE_MANDATORY), true);
+//
+//        UA_VariableAttributes humAttr = UA_VariableAttributes_default;
+//        tmpAttr.description = UA_LOCALIZEDTEXT("en-US", "HumidityVariable of City");
+//        tmpAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Humidity");
+//        UA_Float Hum = 0.0;
+//        UA_Variant_setScalar(&humAttr.value, &Tmp, &UA_TYPES[UA_TYPES_FLOAT]);
+//        UA_Server_addVariableNode(server, UA_NODEID_STRING(1, "humidity-variable"),
+//                                  UA_NODEID_STRING(1, "weather-type"), UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY),
+//                                  UA_QUALIFIEDNAME(1, "humidity-variable"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), tmpAttr, NULL, NULL);
+//
+//        UA_Server_addReference(server, UA_NODEID_STRING(1, "humidity-variable"),
+//                               UA_NODEID_NUMERIC(0, UA_NS0ID_HASMODELLINGRULE),
+//                               UA_EXPANDEDNODEID_NUMERIC(0, UA_NS0ID_MODELLINGRULE_MANDATORY), true);
 //}
-
-//int main(void) {
-//    signal(SIGINT, stopHandler);
-//    signal(SIGTERM, stopHandler);
+//void defInstanceWeather(UA_Server* server, char* locatioName) {
+//        /* get the nodeid assigned by the server */
+//        //UA_NodeId weatherObjectNodeId = UA_NODEID_STRING(1, "weather-type");
+//        char c[120];
+//        sprintf(c, "%s-instance", locatioName);
+//        //nostro 30100 - id dell'istanza
+//        UA_NodeId attrNodeId = UA_NODEID_STRING(1, c);
+//        UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
+//        oAttr.displayName = UA_LOCALIZEDTEXT("en-US", locatioName);
+//        oAttr.description = UA_LOCALIZEDTEXT("en-US", "IstanceCity");
+//        UA_Server_addObjectNode(server, UA_NODEID_NULL,
+//                                UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
+//                                UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+//                                UA_QUALIFIEDNAME(1, "weatherQualifiedName"), UA_NODEID_STRING(1, "weather-type"),
+//                                oAttr, NULL, NULL);
 //
-//    UA_Server* server = UA_Server_new();
-//    UA_ServerConfig_setDefault(UA_Server_getConfig(server));
+//        //TODO capire come accedere alle variabili di un Object istanziato partendo da BaseObjectType proprietario (da questa istanza dice ale)
 //
-//    addCurrentTimeVariable(server);
-//    addValueCallbackToCurrentTimeVariable(server);
-//    addCurrentTimeDataSourceVariable(server);
 //
-//    UA_StatusCode retval = UA_Server_run(server, &running);
+//}
 //
-//    UA_Server_delete(server);
-//    return retval == UA_STATUSCODE_GOOD ? EXIT_SUCCESS : EXIT_FAILURE;
+//UA_StatusCode
+//WeatherTypeConstructor(UA_Server* server,
+//    const UA_NodeId* sessionId, void* sessionContext,
+//    const UA_NodeId* typeId, void* typeContext,
+//    const UA_NodeId* nodeId, void** nodeContext, char* cname) {
+//    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "New weather Station created");
+//
+//    /* Find the NodeId of the status child variable */
+//    UA_RelativePathElement rpe;
+//    UA_RelativePathElement_init(&rpe);
+//    rpe.referenceTypeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT);
+//    rpe.isInverse = false;
+//    rpe.includeSubtypes = false;
+//    rpe.targetName = UA_QUALIFIEDNAME(1, "cityname-variable");
+//
+//    UA_BrowsePath bp;
+//    UA_BrowsePath_init(&bp);
+//    bp.startingNode = *nodeId;
+//    bp.relativePath.elementsSize = 1;
+//    bp.relativePath.elements = &rpe;
+//
+//
+//    UA_BrowsePathResult bpr =
+//        UA_Server_translateBrowsePathToNodeIds(server, &bp);
+//
+//    if (bpr.statusCode != UA_STATUSCODE_GOOD ||
+//        bpr.targetsSize < 1)
+//        return bpr.statusCode;
+//
+//    /* Set the status value */
+//    UA_String cityName = UA_STRING("Bella");
+//    UA_Variant value;
+//    UA_Variant_setScalar(&value, &cityName, &UA_TYPES[UA_TYPES_STRING]);
+//    UA_Server_writeValue(server, bpr.targets[0].targetId.nodeId, value);
+//    UA_BrowsePathResult_clear(&bpr);
+//
+//    /* At this point we could replace the node context .. */
+//
+//    return UA_STATUSCODE_GOOD;
+//}
+//
+//void
+//addWeatherTypeConstructor(UA_Server* server, UA_NodeId typeId) {
+//    char* cname = "Bella";
+//    UA_NodeTypeLifecycle lifecycle;
+//    lifecycle.constructor = WeatherTypeConstructor, cname;
+//    lifecycle.destructor = NULL;
+//    UA_Server_setNodeTypeLifecycle(server, typeId, lifecycle);
 //}
