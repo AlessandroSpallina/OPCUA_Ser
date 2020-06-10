@@ -19,7 +19,12 @@ void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_Netw
         UA_Variant_setScalar(&connectionConfig.address, networkAddressUrl,
                              &UA_TYPES[UA_TYPES_NETWORKADDRESSURLDATATYPE]);
 
-        connectionConfig.publisherId.string = UA_STRING(connectionName);
+
+        // @findme modifiche compatibilità publisher e subscriber
+        //connectionConfig.publisherId.string = UA_STRING(connectionName);
+        connectionConfig.publisherId.numeric = 2234;
+        
+        
         UA_Server_addPubSubConnection(server, &connectionConfig, connectionIdent);
 
   
