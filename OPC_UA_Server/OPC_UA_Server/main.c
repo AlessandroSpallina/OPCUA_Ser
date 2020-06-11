@@ -77,7 +77,6 @@ void stopHandler(int sign) {
 
 int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl) {
     
-
         config->pubsubTransportLayers =
                 (UA_PubSubTransportLayer *) UA_calloc(2, sizeof(UA_PubSubTransportLayer));
         if(!config->pubsubTransportLayers) {
@@ -92,9 +91,10 @@ int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transp
         addPubSubConnection(server, &transportProfile, &networkAddressUrl, &connectionIdent, "Connection1");
         addPublishedDataSet(server, &publishedDataSetIdent, "PDS1");
 
-        addDataSetField(server, publishedDataSetIdent, "temperatureCatania", UA_NODEID_STRING(1, "weather-Catania-temperature"));
-        addDataSetField(server, publishedDataSetIdent, "temperatureEnna", UA_NODEID_STRING(1, "weather-Enna-temperature"));
-        addDataSetField(server, publishedDataSetIdent, "temperatureMonciuffi", UA_NODEID_STRING(1, "weather-Monciuffi-temperature"));
+        //TODO Fix NodeId
+        addDataSetField(server, publishedDataSetIdent, "temperatureCatania", UA_NODEID_NUMERIC(0,53964));
+        //addDataSetField(server, publishedDataSetIdent, "temperatureEnna", UA_NODEID_STRING(1, "weather-Enna-temperature"));
+        //addDataSetField(server, publishedDataSetIdent, "temperatureMonciuffi", UA_NODEID_STRING(1, "weather-Monciuffi-temperature"));
 
         addWriterGroup(server, connectionIdent, &writerGroupIdent, "WriterGroup1");
         addDataSetWriter(server, publishedDataSetIdent, writerGroupIdent, "DataSetWriter1");
