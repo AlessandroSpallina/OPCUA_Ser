@@ -65,3 +65,29 @@ UA_ByteString loadFile(const char *path) {
 //    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "updateValueCallback");
 //#endif
 //}
+
+
+UA_NodeId findNodeIdByBrowsename(UA_Server *server, UA_NodeId startingNode, UA_QualifiedName qualifiedName) {
+    UA_RelativePathElement rpe;
+    UA_RelativePathElement_init(&rpe);
+    rpe.referenceTypeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT);
+    rpe.isInverse = false;
+    rpe.includeSubtypes = false;
+    rpe.targetName = qualifiedName;
+
+    UA_BrowsePath bp;
+    UA_BrowsePath_init(&bp);
+    bp.startingNode = startingNode;
+    bp.relativePath.elementsSize = 1;
+    bp.relativePath.elements = &rpe;
+
+    UA_BrowsePathResult bpr = UA_Server_translateBrowsePathToNodeIds(server, &bp);
+
+    if (bpr.statusCode != UA_STATUSCODE_GOOD || bpr.targetsSize < 1)
+        return UA_NODEID_NULL;
+
+    UA_NodeId toReturn = bpr.targets[0].targetId.nodeId;
+    UA_BrowsePathResult_clear(&bpr);
+
+    return toReturn;
+}

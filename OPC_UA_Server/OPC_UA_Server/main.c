@@ -21,6 +21,11 @@ struct applicationConfig {
         char *customUrl;
 } appConf = {false, true, NULL, NULL, NULL}; // default appConfig
 
+struct fieldToPublish {
+    char* fieldName;
+    UA_NodeId variableId;
+};
+
 // controlla che l'usage sia del tipo: server.exe [--cert <pathCertificato> --key <pathChiave>] [--url <customUdpUadpUrl>] 
 void parseArgument(int argc, char* argv[]) {
         if (argc == 1)
@@ -75,10 +80,11 @@ void stopHandler(int sign) {
         running = false;
 }
 
-int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl) {
+
+
+int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl, struct fieldToPublish fields[]) {
     
-        config->pubsubTransportLayers =
-                (UA_PubSubTransportLayer *) UA_calloc(2, sizeof(UA_PubSubTransportLayer));
+        config->pubsubTransportLayers = (UA_PubSubTransportLayer *) UA_calloc(2, sizeof(UA_PubSubTransportLayer));
         if(!config->pubsubTransportLayers) {
                 UA_Server_delete(server);
                 return EXIT_FAILURE;
@@ -88,13 +94,18 @@ int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transp
 
         UA_NodeId connectionIdent, publishedDataSetIdent, writerGroupIdent;
 
+ 
         addPubSubConnection(server, &transportProfile, &networkAddressUrl, &connectionIdent, "Connection1");
         addPublishedDataSet(server, &publishedDataSetIdent, "PDS1");
 
-        //TODO Fix NodeId
-        addDataSetField(server, publishedDataSetIdent, "temperatureCatania", UA_NODEID_NUMERIC(0,53964));
-        //addDataSetField(server, publishedDataSetIdent, "temperatureEnna", UA_NODEID_STRING(1, "weather-Enna-temperature"));
-        //addDataSetField(server, publishedDataSetIdent, "temperatureMonciuffi", UA_NODEID_STRING(1, "weather-Monciuffi-temperature"));
+        addDataSetField(server, publishedDataSetIdent, fields[0].fieldName, fields[0].variableId);
+        addDataSetField(server, publishedDataSetIdent, fields[1].fieldName, fields[1].variableId);
+
+        //int fieldsCount = sizeof(*fields) / sizeof(struct fieldToPublish);
+
+        //for (int i = 0; i < fieldsCount; i++) {
+        //    addDataSetField(server, publishedDataSetIdent, fields[i].fieldName, fields[i].variableId);
+        //}
 
         addWriterGroup(server, connectionIdent, &writerGroupIdent, "WriterGroup1");
         addDataSetWriter(server, publishedDataSetIdent, writerGroupIdent, "DataSetWriter1");
@@ -108,7 +119,7 @@ int main(int argc, char *argv[]) {
 
         printWelcome();
 
-        UA_Server* server = UA_Server_new();
+        UA_Server *server = UA_Server_new();
         UA_ServerConfig* config = UA_Server_getConfig(server);
 
         UA_StatusCode retval;
@@ -129,6 +140,10 @@ int main(int argc, char *argv[]) {
         }
 
 
+        wtype = defineWeatherObjectAsDataSource(server);
+        UA_NodeId first = defInstanceWeather(server, "Catania", wtype);
+        UA_NodeId second = defInstanceWeather(server, "Monciuffi", wtype);
+
         if (appConf.usingUdpUadp) {
 
             UA_String transportProfile = UA_STRING("http://opcfoundation.org/UA-Profile/Transport/pubsub-udp-uadp");
@@ -138,12 +153,17 @@ int main(int argc, char *argv[]) {
                 networkAddressUrl.url = UA_STRING(appConf.customUrl);
             }
 
-            configurePubSub(server, config, transportProfile, networkAddressUrl);
+            // find node to publish
+
+            struct fieldToPublish tmp[] = {
+                { "temperatureCatania", findNodeIdByBrowsename(server, first, UA_QUALIFIEDNAME(1, "temperature-variable")) },
+                { "temperatureMonciuffi", findNodeIdByBrowsename(server, second, UA_QUALIFIEDNAME(1, "temperature-variable")) }
+            };
+
+            configurePubSub(server, config, transportProfile, networkAddressUrl, tmp);
         }
 
-        wtype = defineWeatherObjectAsDataSource(server);
-        UA_NodeId first = defInstanceWeather(server, "Catania", wtype);
-        UA_NodeId second = defInstanceWeather(server, "Monciuffi", wtype);
+        
 
         signal(SIGINT, stopHandler);
         signal(SIGTERM, stopHandler);
