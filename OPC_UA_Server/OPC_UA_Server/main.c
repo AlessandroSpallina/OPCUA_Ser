@@ -82,7 +82,7 @@ void stopHandler(int sign) {
 
 
 
-int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl, struct fieldToPublish fields[]) {
+int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl, struct fieldToPublish fields[], int fieldsCount) {
     
         config->pubsubTransportLayers = (UA_PubSubTransportLayer *) UA_calloc(2, sizeof(UA_PubSubTransportLayer));
         if(!config->pubsubTransportLayers) {
@@ -98,14 +98,13 @@ int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transp
         addPubSubConnection(server, &transportProfile, &networkAddressUrl, &connectionIdent, "Connection1");
         addPublishedDataSet(server, &publishedDataSetIdent, "PDS1");
 
-        addDataSetField(server, publishedDataSetIdent, fields[0].fieldName, fields[0].variableId);
-        addDataSetField(server, publishedDataSetIdent, fields[1].fieldName, fields[1].variableId);
+        //addDataSetField(server, publishedDataSetIdent, fields[0].fieldName, fields[0].variableId);
+        //addDataSetField(server, publishedDataSetIdent, fields[1].fieldName, fields[1].variableId);
 
-        //int fieldsCount = sizeof(*fields) / sizeof(struct fieldToPublish);
 
-        //for (int i = 0; i < fieldsCount; i++) {
-        //    addDataSetField(server, publishedDataSetIdent, fields[i].fieldName, fields[i].variableId);
-        //}
+        for (int i = 0; i < fieldsCount; i++) {
+            addDataSetField(server, publishedDataSetIdent, fields[i].fieldName, fields[i].variableId);
+        }
 
         addWriterGroup(server, connectionIdent, &writerGroupIdent, "WriterGroup1");
         addDataSetWriter(server, publishedDataSetIdent, writerGroupIdent, "DataSetWriter1");
@@ -160,7 +159,7 @@ int main(int argc, char *argv[]) {
                 { "temperatureMonciuffi", findNodeIdByBrowsename(server, second, UA_QUALIFIEDNAME(1, "temperature-variable")) }
             };
 
-            configurePubSub(server, config, transportProfile, networkAddressUrl, tmp);
+            configurePubSub(server, config, transportProfile, networkAddressUrl, tmp, 2);
         }
 
         
