@@ -18,10 +18,6 @@
 
 #include "ua_pubsub.h"
 
-#ifdef UA_ENABLE_PUBSUB_ETH_UADP
-#include <open62541/plugin/pubsub_ethernet.h>
-#endif
-
 #include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -35,11 +31,8 @@ UA_DataSetReaderConfig readerConfig;
 static void fillTestDataSetMetaData(UA_DataSetMetaDataType* pMetaData);
 
 /* Add new connection to the server */
-static UA_StatusCode
-addPubSubConnection(UA_Server* server, UA_String* transportProfile,
-    UA_NetworkAddressUrlDataType* networkAddressUrl) {
-    if ((server == NULL) || (transportProfile == NULL) ||
-        (networkAddressUrl == NULL)) {
+UA_StatusCode addPubSubConnection(UA_Server* server, UA_String* transportProfile, UA_NetworkAddressUrlDataType* networkAddressUrl) {
+    if ((server == NULL) || (transportProfile == NULL) || (networkAddressUrl == NULL)) {
         return UA_STATUSCODE_BADINTERNALERROR;
     }
 
@@ -50,8 +43,7 @@ addPubSubConnection(UA_Server* server, UA_String* transportProfile,
     connectionConfig.name = UA_STRING("UDPMC Connection 1");
     connectionConfig.transportProfileUri = *transportProfile;
     connectionConfig.enabled = UA_TRUE;
-    UA_Variant_setScalar(&connectionConfig.address, networkAddressUrl,
-        &UA_TYPES[UA_TYPES_NETWORKADDRESSURLDATATYPE]);
+    UA_Variant_setScalar(&connectionConfig.address, networkAddressUrl, &UA_TYPES[UA_TYPES_NETWORKADDRESSURLDATATYPE]);
     connectionConfig.publisherId.numeric = UA_UInt32_random();
     retval |= UA_Server_addPubSubConnection(server, &connectionConfig, &connectionIdentifier);
     if (retval != UA_STATUSCODE_GOOD) {
@@ -62,8 +54,7 @@ addPubSubConnection(UA_Server* server, UA_String* transportProfile,
 }
 
 /* Add ReaderGroup to the created connection */
-static UA_StatusCode
-addReaderGroup(UA_Server* server) {
+UA_StatusCode addReaderGroup(UA_Server* server) {
     if (server == NULL) {
         return UA_STATUSCODE_BADINTERNALERROR;
     }
@@ -72,15 +63,13 @@ addReaderGroup(UA_Server* server) {
     UA_ReaderGroupConfig readerGroupConfig;
     memset(&readerGroupConfig, 0, sizeof(UA_ReaderGroupConfig));
     readerGroupConfig.name = UA_STRING("ReaderGroup1");
-    retval |= UA_Server_addReaderGroup(server, connectionIdentifier, &readerGroupConfig,
-        &readerGroupIdentifier);
+    retval |= UA_Server_addReaderGroup(server, connectionIdentifier, &readerGroupConfig, &readerGroupIdentifier);
     UA_Server_setReaderGroupOperational(server, readerGroupIdentifier);
     return retval;
 }
 
 /* Add DataSetReader to the ReaderGroup */
-static UA_StatusCode
-addDataSetReader(UA_Server* server) {
+UA_StatusCode addDataSetReader(UA_Server* server) {
     if (server == NULL) {
         return UA_STATUSCODE_BADINTERNALERROR;
     }
@@ -101,15 +90,14 @@ addDataSetReader(UA_Server* server) {
 
     /* Setting up Meta data configuration in DataSetReader */
     fillTestDataSetMetaData(&readerConfig.dataSetMetaData);
-    retval |= UA_Server_addDataSetReader(server, readerGroupIdentifier, &readerConfig,
-        &readerIdentifier);
+    retval |= UA_Server_addDataSetReader(server, readerGroupIdentifier, &readerConfig, &readerIdentifier);
+    
     return retval;
 }
 
 /* Set SubscribedDataSet type to TargetVariables data type
  * Add subscribedvariables to the DataSetReader */
-static UA_StatusCode
-addSubscribedVariables(UA_Server* server, UA_NodeId dataSetReaderId) {
+UA_StatusCode addSubscribedVariables(UA_Server* server, UA_NodeId dataSetReaderId) {
     if (server == NULL) {
         return UA_STATUSCODE_BADINTERNALERROR;
     }
@@ -130,10 +118,8 @@ addSubscribedVariables(UA_Server* server, UA_NodeId dataSetReaderId) {
         folderBrowseName = UA_QUALIFIEDNAME(1, "Subscribed Variables");
     }
 
-    UA_Server_addObjectNode(server, UA_NODEID_NULL,
-        UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
-        UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-        folderBrowseName, UA_NODEID_NUMERIC(0,
+    UA_Server_addObjectNode(server, UA_NODEID_NULL, UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
+        UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), folderBrowseName, UA_NODEID_NUMERIC(0,
             UA_NS0ID_BASEOBJECTTYPE), oAttr, NULL, &folderId);
 
     retval |= UA_Server_DataSetReader_addTargetVariables(server, &folderId,
@@ -144,7 +130,7 @@ addSubscribedVariables(UA_Server* server, UA_NodeId dataSetReaderId) {
 }
 
 /* Define MetaData for TargetVariables */
-static void fillTestDataSetMetaData(UA_DataSetMetaDataType* pMetaData) {
+void fillTestDataSetMetaData(UA_DataSetMetaDataType* pMetaData) {
     if (pMetaData == NULL) {
         return;
     }
@@ -155,17 +141,21 @@ static void fillTestDataSetMetaData(UA_DataSetMetaDataType* pMetaData) {
     /* Static definition of number of fields size to 4 to create four different
      * targetVariables of distinct datatype
      * Currently the publisher sends only DateTime data type */
-    pMetaData->fieldsSize = 1;
-    pMetaData->fields = (UA_FieldMetaData*)UA_Array_new(pMetaData->fieldsSize,
-        &UA_TYPES[UA_TYPES_FIELDMETADATA]);
+    pMetaData->fieldsSize = 2;
+    pMetaData->fields = (UA_FieldMetaData*)UA_Array_new(pMetaData->fieldsSize, &UA_TYPES[UA_TYPES_FIELDMETADATA]);
 
 
     UA_FieldMetaData_init(&pMetaData->fields[0]);
-    UA_NodeId_copy(&UA_TYPES[UA_TYPES_FLOAT].typeId,
-        &pMetaData->fields[0].dataType);
+    UA_NodeId_copy(&UA_TYPES[UA_TYPES_FLOAT].typeId, &pMetaData->fields[0].dataType);
     pMetaData->fields[0].builtInType = UA_NS0ID_FLOAT;
-    pMetaData->fields[0].name = UA_STRING("Temp");
+    pMetaData->fields[0].name = UA_STRING("TemperatureCatania");
     pMetaData->fields[0].valueRank = -1; /* scalar */
+
+    UA_FieldMetaData_init(&pMetaData->fields[1]);
+    UA_NodeId_copy(&UA_TYPES[UA_TYPES_FLOAT].typeId, &pMetaData->fields[1].dataType);
+    pMetaData->fields[1].builtInType = UA_NS0ID_FLOAT;
+    pMetaData->fields[1].name = UA_STRING("TemperatureMonciuffi");
+    pMetaData->fields[1].valueRank = -1; /* scalar */
 
     ///* DateTime DataType */
     //UA_FieldMetaData_init(&pMetaData->fields[0]);
@@ -201,13 +191,13 @@ static void fillTestDataSetMetaData(UA_DataSetMetaDataType* pMetaData) {
 }
 
 UA_Boolean running = true;
-static void stopHandler(int sign) {
+
+void stopHandler(int sign) {
     UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_SERVER, "received ctrl-c");
     running = false;
 }
 
-static int
-run(UA_String* transportProfile, UA_NetworkAddressUrlDataType* networkAddressUrl) {
+int run(UA_String* transportProfile, UA_NetworkAddressUrlDataType* networkAddressUrl) {
     signal(SIGINT, stopHandler);
     signal(SIGTERM, stopHandler);
     /* Return value initialized to Status Good */
@@ -229,10 +219,6 @@ run(UA_String* transportProfile, UA_NetworkAddressUrlDataType* networkAddressUrl
 
     config->pubsubTransportLayers[0] = UA_PubSubTransportLayerUDPMP();
     config->pubsubTransportLayersSize++;
-#ifdef UA_ENABLE_PUBSUB_ETH_UADP
-    config->pubsubTransportLayers[1] = UA_PubSubTransportLayerEthernet();
-    config->pubsubTransportLayersSize++;
-#endif
 
     /* API calls */
     /* Add PubSubConnection */
@@ -260,8 +246,7 @@ run(UA_String* transportProfile, UA_NetworkAddressUrlDataType* networkAddressUrl
     return retval == UA_STATUSCODE_GOOD ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-static void
-usage(char* progname) {
+void usage(char* progname) {
     printf("usage: %s <uri> [device]\n", progname);
 }
 
