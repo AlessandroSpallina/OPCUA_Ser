@@ -13,22 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\trash">
-      <UniqueIdentifier>{cba74f27-1334-4d5f-b4ff-2fa6bdafba4f}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="datasource.c">
-      <Filter>Source Files\trash</Filter>
-    </ClCompile>
-    <ClCompile Include="TypeDefinition.c">
-      <Filter>Source Files\trash</Filter>
-    </ClCompile>
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="working_subtype.c">
-      <Filter>Source Files\trash</Filter>
     </ClCompile>
     <ClCompile Include="utils.c">
       <Filter>Source Files</Filter>
@@ -37,6 +25,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pubsub.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sensors.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -48,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sensors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

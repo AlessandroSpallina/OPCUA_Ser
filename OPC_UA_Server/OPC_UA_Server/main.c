@@ -10,6 +10,9 @@
 #include "utils.h"
 #include "informationmodel.h"
 #include "pubsub.h"
+#include "sensors.h"
+
+#define WEATHER_STATIONS_COUNT 8
 
 volatile UA_Boolean running = true;
 
@@ -114,11 +117,33 @@ int main(int argc, char *argv[]) {
                 return retval == UA_STATUSCODE_GOOD ? EXIT_SUCCESS : EXIT_FAILURE;
         }
 
-        /* Generazione nuovo ObjecType -> WeatheType. Ritorna il NodeId che identifica il tipo*/
-        wtype = defineWeatherObjectAsDataSource(server);
-        /* Definisco due istanze delle stazioni meteo. Ritorna il NodeId che identifica le due istanze*/
-        UA_NodeId first = defInstanceWeather(server, "Catania", wtype);
-        UA_NodeId second = defInstanceWeather(server, "Monciuffi", wtype);
+        ///* Generazione nuovo ObjecType -> WeatheType. Ritorna il NodeId che identifica il tipo*/
+        //wtype = defineWeatherObjectAsDataSource(server);
+        ///* Definisco due istanze delle stazioni meteo. Ritorna il NodeId che identifica le due istanze*/
+        //UA_NodeId first = defInstanceWeather(server, "Catania", wtype);
+        //UA_NodeId second = defInstanceWeather(server, "Monciuffi", wtype);
+
+        wtype = defineObjectTypeWeather(server);
+
+        UA_NodeId weatherStations[WEATHER_STATIONS_COUNT] = {
+            instantiateWeatherObject(server, wtype, "Catania"),
+            instantiateWeatherObject(server, wtype, "Enna"),
+            instantiateWeatherObject(server, wtype, "Palermo"),
+            instantiateWeatherObject(server, wtype, "Agrigento"),
+            instantiateWeatherObject(server, wtype, "Siracusa"),
+            instantiateWeatherObject(server, wtype, "Trapani"),
+            instantiateWeatherObject(server, wtype, "Ragusa"),
+            instantiateWeatherObject(server, wtype, "Catanissetta"),
+        };
+
+        for (int i = 0; i < WEATHER_STATIONS_COUNT; i++) {
+            UA_NodeId temperature = findNodeIdByBrowsename(server, weatherStations[i], UA_QUALIFIEDNAME(1, "temperature-variable"));
+            addValueCallbackToVariable(server, temperature, beforeReadTemperature, afterWriteTemperature);
+
+            UA_NodeId humidity = findNodeIdByBrowsename(server, weatherStations[i], UA_QUALIFIEDNAME(1, "humidity-variable"));
+            addValueCallbackToVariable(server, humidity, beforeReadHumidity, afterWriteHumidity);
+        }
+
 
         //PubSub abilitato con profilo UDP UADP
         if (appConf.usingUdpUadp) {
@@ -132,15 +157,14 @@ int main(int argc, char *argv[]) {
             }
 
            /*funzione custom per la ricerca del NodeId della variabile da pubblicare. Riceve in ingresso il NodeId del Parent Object e il QualifiedName (BrowseName) e restituisce l'id della variabile/risorsa da pubblicare  */
-           fieldToPublish tmp[] = {
-                { "temperatureCatania", findNodeIdByBrowsename(server, first, UA_QUALIFIEDNAME(1, "temperature-variable")) },
-                { "temperatureMonciuffi", findNodeIdByBrowsename(server, second, UA_QUALIFIEDNAME(1, "temperature-variable")) }
+            fieldToPublish tmp[] = {
+                { "temperatureCatania", findNodeIdByBrowsename(server, weatherStations[0], UA_QUALIFIEDNAME(1, "temperature-variable")) },
+                { "temperatureMonciuffi", findNodeIdByBrowsename(server, weatherStations[2], UA_QUALIFIEDNAME(1, "temperature-variable")) }
             };
+
             //custom function per config
             configurePubSub(server, config, transportProfile, networkAddressUrl, tmp, 2);
         }
-
-        
 
         signal(SIGINT, stopHandler);
         signal(SIGTERM, stopHandler);

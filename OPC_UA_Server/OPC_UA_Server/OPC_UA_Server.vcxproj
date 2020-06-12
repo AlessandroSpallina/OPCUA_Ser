@@ -18,15 +18,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="datasource.c" />
     <ClCompile Include="informationmodel.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="TypeDefinition.c" />
+    <ClCompile Include="sensors.c" />
     <ClCompile Include="utils.c" />
-    <ClCompile Include="working_subtype.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="informationmodel.h" />
+    <ClInclude Include="sensors.h" />
     <ClInclude Include="utils.h" />
     <ClCompile Include="pubsub.c" />
     <ClInclude Include="pubsub.h" />

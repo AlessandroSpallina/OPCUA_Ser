@@ -12,7 +12,6 @@
 // ritorna per riferimento la connectionIdent
 void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_NetworkAddressUrlDataType *networkAddressUrl, UA_NodeId *connectionIdent, char *connectionName){
 
-    
         UA_PubSubConnectionConfig connectionConfig;
 
         memset(&connectionConfig, 0, sizeof(connectionConfig));
@@ -20,7 +19,6 @@ void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_Netw
         connectionConfig.transportProfileUri = *transportProfile;
         connectionConfig.enabled = UA_TRUE;
         UA_Variant_setScalar(&connectionConfig.address, networkAddressUrl, &UA_TYPES[UA_TYPES_NETWORKADDRESSURLDATATYPE]);
-
 
         // @findme modifiche compatibilità publisher e subscriber
         //connectionConfig.publisherId.string = UA_STRING(connectionName);
