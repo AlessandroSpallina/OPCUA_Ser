@@ -1,10 +1,13 @@
-/*
-    Publish informations from the information model over UDP multicast using UADP encoding
- */
+
 #include <open62541/plugin/log_stdout.h>
 #include <open62541/plugin/pubsub_udp.h>
-
+#include <open62541/server.h>
+#include <open62541/server_config_default.h>
 #include "pubsub.h"
+
+/*
+   Pubblicazione delle informazioni provenienti da Information Model su UDP Multicast utilizzando codifica UADP
+ */
 
 // ritorna per riferimento la connectionIdent
 void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_NetworkAddressUrlDataType *networkAddressUrl, UA_NodeId *connectionIdent, char *connectionName){
@@ -122,4 +125,28 @@ void addDataSetWriter(UA_Server *server, UA_NodeId publishedDataSetIdent, UA_Nod
         dataSetWriterConfig.keyFrameCount = 10;
         UA_Server_addDataSetWriter(server, writerGroupIdent, publishedDataSetIdent,
                                    &dataSetWriterConfig, &dataSetWriterIdent);
+}
+
+int configurePubSub(UA_Server* server, UA_ServerConfig* config, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl, fieldToPublish fields[], int fieldsCount) {
+
+    config->pubsubTransportLayers = (UA_PubSubTransportLayer*)UA_calloc(2, sizeof(UA_PubSubTransportLayer));
+    if (!config->pubsubTransportLayers) {
+        UA_Server_delete(server);
+        return EXIT_FAILURE;
+    }
+    config->pubsubTransportLayers[0] = UA_PubSubTransportLayerUDPMP();
+    config->pubsubTransportLayersSize++;
+
+    UA_NodeId connectionIdent, publishedDataSetIdent, writerGroupIdent;
+
+
+    addPubSubConnection(server, &transportProfile, &networkAddressUrl, &connectionIdent, "Connection1");
+    addPublishedDataSet(server, &publishedDataSetIdent, "PDS1");
+
+    for (int i = 0; i < fieldsCount; i++) {
+        addDataSetField(server, publishedDataSetIdent, fields[i].fieldName, fields[i].variableId);
+    }
+
+    addWriterGroup(server, connectionIdent, &writerGroupIdent, "WriterGroup1");
+    addDataSetWriter(server, publishedDataSetIdent, writerGroupIdent, "DataSetWriter1");
 }

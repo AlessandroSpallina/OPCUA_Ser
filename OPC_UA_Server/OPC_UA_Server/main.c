@@ -13,18 +13,17 @@
 
 volatile UA_Boolean running = true;
 
+//struttura per le diverse configurazionid el server - Default Settings - Disabilita cifratura, usa UDP, path del certificato, della chiave e Url Multicast 
 struct applicationConfig {
         bool encryption;
         bool usingUdpUadp;
         char *certPath;
         char *keyPath;
         char *customUrl;
-} appConf = {false, true, NULL, NULL, NULL}; // default appConfig
+} appConf = {false, true, NULL, NULL, NULL}; 
 
-struct fieldToPublish {
-    char* fieldName;
-    UA_NodeId variableId;
-};
+//struttura custom per la specifica dei DataSetField da pubblicare 
+
 
 // controlla che l'usage sia del tipo: server.exe [--cert <pathCertificato> --key <pathChiave>] [--url <customUdpUadpUrl>] 
 void parseArgument(int argc, char* argv[]) {
@@ -54,6 +53,7 @@ void parseArgument(int argc, char* argv[]) {
         }
 }
 
+//Presentazione del server e visualizzazione della configurazione attuale
 void printWelcome() {
         printf("Welcome in OPC UA Server\n");
         printf("You are running this process with following config:\n");
@@ -75,56 +75,31 @@ void printWelcome() {
         printf("\n");
 }
 
+
+//Shutdown del server al segnale 
 void stopHandler(int sign) {
         UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_SERVER, "Received ctrl-c");
         running = false;
 }
 
-
-
-int configurePubSub(UA_Server *server, UA_ServerConfig *config, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl, struct fieldToPublish fields[], int fieldsCount) {
-    
-        config->pubsubTransportLayers = (UA_PubSubTransportLayer *) UA_calloc(2, sizeof(UA_PubSubTransportLayer));
-        if(!config->pubsubTransportLayers) {
-                UA_Server_delete(server);
-                return EXIT_FAILURE;
-        }
-        config->pubsubTransportLayers[0] = UA_PubSubTransportLayerUDPMP();
-        config->pubsubTransportLayersSize++;    
-
-        UA_NodeId connectionIdent, publishedDataSetIdent, writerGroupIdent;
-
- 
-        addPubSubConnection(server, &transportProfile, &networkAddressUrl, &connectionIdent, "Connection1");
-        addPublishedDataSet(server, &publishedDataSetIdent, "PDS1");
-
-        //addDataSetField(server, publishedDataSetIdent, fields[0].fieldName, fields[0].variableId);
-        //addDataSetField(server, publishedDataSetIdent, fields[1].fieldName, fields[1].variableId);
-
-
-        for (int i = 0; i < fieldsCount; i++) {
-            addDataSetField(server, publishedDataSetIdent, fields[i].fieldName, fields[i].variableId);
-        }
-
-        addWriterGroup(server, connectionIdent, &writerGroupIdent, "WriterGroup1");
-        addDataSetWriter(server, publishedDataSetIdent, writerGroupIdent, "DataSetWriter1");
-}
-
 int main(int argc, char *argv[]) {
     
+        //UA_NodeId settato di ritorno alla definizione del ObjecType -> Dinamico
         UA_NodeId wtype; 
 
+        //Check degli argomenti, set dell'appConfig
         parseArgument(argc, argv);
 
         printWelcome();
 
+        //Inizializza il server e ServerConfig
         UA_Server *server = UA_Server_new();
         UA_ServerConfig* config = UA_Server_getConfig(server);
 
         UA_StatusCode retval;
 
         if (appConf.encryption) {
-                /* Load certificate and private key */
+                /* Carica certificato e chiave se esiste */
                 UA_ByteString certificate = loadFile(appConf.certPath);
                 UA_ByteString privateKey = loadFile(appConf.keyPath);
 
@@ -134,31 +109,34 @@ int main(int argc, char *argv[]) {
         }
 
         if (retval != UA_STATUSCODE_GOOD) {
+                UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_SERVER, "Error initializating server");
                 UA_Server_delete(server);
                 return retval == UA_STATUSCODE_GOOD ? EXIT_SUCCESS : EXIT_FAILURE;
         }
 
-
+        /* Generazione nuovo ObjecType -> WeatheType. Ritorna il NodeId che identifica il tipo*/
         wtype = defineWeatherObjectAsDataSource(server);
+        /* Definisco due istanze delle stazioni meteo. Ritorna il NodeId che identifica le due istanze*/
         UA_NodeId first = defInstanceWeather(server, "Catania", wtype);
         UA_NodeId second = defInstanceWeather(server, "Monciuffi", wtype);
 
+        //PubSub abilitato con profilo UDP UADP
         if (appConf.usingUdpUadp) {
-
+            //Set del profilo e del muticast Address
             UA_String transportProfile = UA_STRING("http://opcfoundation.org/UA-Profile/Transport/pubsub-udp-uadp");
             UA_NetworkAddressUrlDataType networkAddressUrl = { UA_STRING_NULL, UA_STRING("opc.udp://224.0.0.22:4840/") };
 
+            //Custom Url Multicast
             if (appConf.customUrl != NULL) {
                 networkAddressUrl.url = UA_STRING(appConf.customUrl);
             }
 
-            // find node to publish
-
-            struct fieldToPublish tmp[] = {
+           /*funzione custom per la ricerca del NodeId della variabile da pubblicare. Riceve in ingresso il NodeId del Parent Object e il QualifiedName (BrowseName) e restituisce l'id della variabile/risorsa da pubblicare  */
+           fieldToPublish tmp[] = {
                 { "temperatureCatania", findNodeIdByBrowsename(server, first, UA_QUALIFIEDNAME(1, "temperature-variable")) },
                 { "temperatureMonciuffi", findNodeIdByBrowsename(server, second, UA_QUALIFIEDNAME(1, "temperature-variable")) }
             };
-
+            //custom function per config
             configurePubSub(server, config, transportProfile, networkAddressUrl, tmp, 2);
         }
 

@@ -60,7 +60,7 @@ UA_NodeId defineWeatherObjectAsDataSource(UA_Server* server) {
     UA_ObjectTypeAttributes otAttr = UA_ObjectTypeAttributes_default;
     otAttr.description = UA_LOCALIZEDTEXT("en-US", "Weather Type");
     otAttr.displayName = UA_LOCALIZEDTEXT("en-US", "WeatherType");
-    UA_Server_addObjectTypeNode(server, UA_NODEID_NULL,
+    UA_Server_addObjectTypeNode(server, UA_NODEID_NUMERIC(1, NULL),
         UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE),
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE),
         UA_QUALIFIEDNAME(1, "WeatherType"), otAttr, NULL, &weatherId);
@@ -71,7 +71,7 @@ UA_NodeId defineWeatherObjectAsDataSource(UA_Server* server) {
     UA_VariableAttributes vAttr = UA_VariableAttributes_default;
     vAttr.description = UA_LOCALIZEDTEXT("en-US", "Name of the city for which record Temp/Hum");
     vAttr.displayName = UA_LOCALIZEDTEXT("en-US", "CityName");
-    UA_Server_addVariableNode(server, UA_NODEID_NULL,
+    UA_Server_addVariableNode(server, UA_NODEID_NUMERIC(1, NULL),
         weatherId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "cityname-variable"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), vAttr, NULL, &cityNameId);
     //variabile obbligatoria
@@ -94,7 +94,7 @@ UA_NodeId defineWeatherObjectAsDataSource(UA_Server* server) {
         UA_QUALIFIEDNAME(1, "temperature-variable"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), tmpAttr, NULL, &tempId);*/
     UA_DataSource tempDataSource;
     tempDataSource.read = readCurrentTemperature;
-    tempDataSource.write = writeCurrentTemperature;
+    tempDataSource.write = writeCurrentTemperature;    
     UA_Server_addDataSourceVariableNode(server, UA_NODEID_NULL,
         weatherId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "temperature-variable"),
@@ -135,7 +135,7 @@ UA_NodeId defInstanceWeather(UA_Server* server, char* locatioName, UA_NodeId wty
             UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
             oAttr.displayName = UA_LOCALIZEDTEXT("en-US", locatioName);
             oAttr.description = UA_LOCALIZEDTEXT("en-US", "IstanceCity");
-            UA_Server_addObjectNode(server, UA_NODEID_NULL,
+            UA_Server_addObjectNode(server, UA_NODEID_NUMERIC(1,NULL),
                                     UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
                                     UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
                                     UA_QUALIFIEDNAME(1, locatioName), wtype,
