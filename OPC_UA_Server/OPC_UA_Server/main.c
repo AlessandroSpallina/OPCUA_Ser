@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
            /*funzione custom per la ricerca del NodeId della variabile da pubblicare. Riceve in ingresso il NodeId del Parent Object e il QualifiedName (BrowseName) e restituisce l'id della variabile/risorsa da pubblicare  */
             fieldToPublish tmp[] = {
                 { "temperatureCatania", findNodeIdByBrowsename(server, weatherStations[0], UA_QUALIFIEDNAME(1, "temperature-variable")) },
-                { "temperatureMonciuffi", findNodeIdByBrowsename(server, weatherStations[2], UA_QUALIFIEDNAME(1, "temperature-variable")) }
+                { "temperatureEnna", findNodeIdByBrowsename(server, weatherStations[2], UA_QUALIFIEDNAME(1, "temperature-variable")) }
             };
 
             //custom function per config

@@ -82,7 +82,7 @@ void addWriterGroup(UA_Server *server, UA_NodeId connectionIdent, UA_NodeId *wri
         UA_WriterGroupConfig writerGroupConfig;
         memset(&writerGroupConfig, 0, sizeof(UA_WriterGroupConfig));
         writerGroupConfig.name = UA_STRING(writerGroupName);
-        writerGroupConfig.publishingInterval = 100;
+        writerGroupConfig.publishingInterval = 1000;
         writerGroupConfig.enabled = UA_FALSE;
         writerGroupConfig.writerGroupId = 100;
         writerGroupConfig.encodingMimeType = UA_PUBSUB_ENCODING_UADP;

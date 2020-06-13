@@ -275,6 +275,7 @@ UA_NodeId instantiateWeatherObject(UA_Server* server, UA_NodeId wtype, char* loc
                                     oAttr, NULL, &istantiatedObject);
 
             UA_NodeId citynameVariable = findNodeIdByBrowsename(server, istantiatedObject, UA_QUALIFIEDNAME(1, "cityname-variable"));
+            UA_NodeId tempId = findNodeIdByBrowsename(server, istantiatedObject, UA_QUALIFIEDNAME(1, "temperture-variable"));
             
             //Inizializza variabile cityName
             UA_String cityName = UA_STRING(locatioName);
@@ -288,9 +289,7 @@ UA_NodeId instantiateWeatherObject(UA_Server* server, UA_NodeId wtype, char* loc
 void addValueCallbackToVariable(UA_Server* server, UA_NodeId variableToUdate, void (*beforeReadCallback)(void), void (*afterWriteCallback)(void)) {
     UA_NodeId currentNodeId = variableToUdate;
     UA_ValueCallback callback;
-    //callback.onRead = (*beforeReadCallback);
-    //callback.onWrite = (*afterWriteCallback);
-    callback.onRead = beforeReadTemperature;
-    callback.onWrite = afterWriteTemperature;
+    callback.onRead = (*beforeReadCallback);
+    callback.onWrite = (*afterWriteCallback);
     UA_Server_setVariableNode_valueCallback(server, currentNodeId, callback);
 }
