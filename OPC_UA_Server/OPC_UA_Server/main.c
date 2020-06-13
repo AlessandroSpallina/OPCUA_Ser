@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
 
             //custom function per config
             configurePubSubUdp(server, config);
-
+            runPubSub(server, transportProfile, networkAddressUrl, WEATHER_STATIONS_COUNT, fieldsToPublish);
         }
 
         signal(SIGINT, stopHandler);
