@@ -15,7 +15,7 @@ UA_NodeId defineObjectTypeWeather(UA_Server* server) {
     otAttr.description = UA_LOCALIZEDTEXT("en-US", "Weather Type");
     otAttr.displayName = UA_LOCALIZEDTEXT("en-US", "WeatherType");
     UA_Server_addObjectTypeNode(server, UA_NODEID_NUMERIC(1, 0), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE), 
-        UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(1, "weather-object-type"), otAttr, NULL, &weatherId);
+        UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), WEATHER_OBJECTTYPE_QUALIFIEDNAME, otAttr, NULL, &weatherId);
 
     //Primo attributo - Nome della localita meteo
     UA_NodeId cityNameId;
@@ -24,7 +24,7 @@ UA_NodeId defineObjectTypeWeather(UA_Server* server) {
     vAttr.displayName = UA_LOCALIZEDTEXT("en-US", "CityName");
     vAttr.valueRank = UA_VALUERANK_SCALAR;
     UA_Server_addVariableNode(server, UA_NODEID_NUMERIC(1, 0), weatherId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
-        UA_QUALIFIEDNAME(1, "cityname-variable"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), vAttr, NULL, &cityNameId);
+        CITYNAME_VARIABLE_QUALIFIEDNAME, UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), vAttr, NULL, &cityNameId);
     //variabile obbligatoria
     UA_Server_addReference(server, cityNameId,
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASMODELLINGRULE),
@@ -41,7 +41,7 @@ UA_NodeId defineObjectTypeWeather(UA_Server* server) {
     UA_Float tmp = 0.0;
     UA_Variant_setScalar(&tmpAttr.value, &tmp, &UA_TYPES[UA_TYPES_FLOAT]);
     UA_Server_addVariableNode(server, UA_NODEID_NUMERIC(1, 0), weatherId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
-        UA_QUALIFIEDNAME(1, "temperature-variable"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEANALOGTYPE), tmpAttr, NULL, &tempId);
+        TEMPERATURE_VARIABLE_QUALIFIEDNAME, UA_NODEID_NUMERIC(0, UA_NS0ID_BASEANALOGTYPE), tmpAttr, NULL, &tempId);
     //variabile obbligatoria
     UA_Server_addReference(server, tempId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASMODELLINGRULE),
         UA_EXPANDEDNODEID_NUMERIC(0, UA_NS0ID_MODELLINGRULE_MANDATORY), true);
@@ -64,7 +64,7 @@ UA_NodeId defineObjectTypeWeather(UA_Server* server) {
     UA_String unitOfMisurementPropName = UA_STRING("Celsius");
     UA_Variant_setScalar(&unitOfMisurementPropAttr.value, &unitOfMisurementPropName, &UA_TYPES[UA_TYPES_STRING]);
     UA_Server_addVariableNode(server, UA_NODEID_NULL, tempId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY),
-        UA_QUALIFIEDNAME(1, "UnitOfMisurementQualifiedName"), UA_NODEID_NUMERIC(0, UA_NS0ID_PROPERTYTYPE), unitOfMisurementPropAttr, NULL, &temp_units);
+        UA_QUALIFIEDNAME(1, "UnitOfMisurementTemperatureQualifiedName"), UA_NODEID_NUMERIC(0, UA_NS0ID_PROPERTYTYPE), unitOfMisurementPropAttr, NULL, &temp_units);
     //variabile obbligatoria
     UA_Server_addReference(server, temp_units, UA_NODEID_NUMERIC(0, UA_NS0ID_HASMODELLINGRULE),
         UA_EXPANDEDNODEID_NUMERIC(0, UA_NS0ID_MODELLINGRULE_MANDATORY), true);
@@ -81,7 +81,7 @@ UA_NodeId defineObjectTypeWeather(UA_Server* server) {
     UA_Variant_setScalar(&humAttr.value, &hum, &UA_TYPES[UA_TYPES_FLOAT]);
 
     UA_Server_addVariableNode(server, UA_NODEID_NUMERIC(1, 0), weatherId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
-        UA_QUALIFIEDNAME(1, "humidity-variable"), UA_NODEID_NUMERIC(0, UA_NS0ID_BASEANALOGTYPE), humAttr, NULL, &humId);
+        HUMIDITY_VARIABLE_QUALIFIEDNAME, UA_NODEID_NUMERIC(0, UA_NS0ID_BASEANALOGTYPE), humAttr, NULL, &humId);
     //variabile obbligatoria
     UA_Server_addReference(server, humId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASMODELLINGRULE),
         UA_EXPANDEDNODEID_NUMERIC(0, UA_NS0ID_MODELLINGRULE_MANDATORY), true);
@@ -93,7 +93,7 @@ UA_NodeId defineObjectTypeWeather(UA_Server* server) {
     UA_String unitOfMisurementHumPropName = UA_STRING("0:100");
     UA_Variant_setScalar(&unitOfMisurementHumPropAttr.value, &unitOfMisurementHumPropName, &UA_TYPES[UA_TYPES_STRING]);
     UA_Server_addVariableNode(server, UA_NODEID_NULL, humId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY),
-        UA_QUALIFIEDNAME(1, "RangeTemperatureQualifiedName"), UA_NODEID_NUMERIC(0, UA_NS0ID_PROPERTYTYPE), unitOfMisurementHumPropAttr, NULL, &hum_range);
+        UA_QUALIFIEDNAME(1, "RangeHumidtyQualifiedName"), UA_NODEID_NUMERIC(0, UA_NS0ID_PROPERTYTYPE), unitOfMisurementHumPropAttr, NULL, &hum_range);
     //variabile obbligatoria
     UA_Server_addReference(server, hum_range, UA_NODEID_NUMERIC(0, UA_NS0ID_HASMODELLINGRULE),
         UA_EXPANDEDNODEID_NUMERIC(0, UA_NS0ID_MODELLINGRULE_MANDATORY), true);
@@ -101,7 +101,7 @@ UA_NodeId defineObjectTypeWeather(UA_Server* server) {
     return weatherId;
 }
 
-UA_NodeId instantiateWeatherObject(UA_Server* server, UA_NodeId wtype, char* locatioName) {
+UA_NodeId instantiateWeatherObject(UA_Server *server, UA_NodeId wtype, char* locatioName) {
 
             UA_NodeId istantiatedObject; 
             UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
@@ -111,7 +111,7 @@ UA_NodeId instantiateWeatherObject(UA_Server* server, UA_NodeId wtype, char* loc
                                     UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_QUALIFIEDNAME(1, locatioName), wtype,
                                     oAttr, NULL, &istantiatedObject);
 
-            UA_NodeId citynameVariable = findNodeIdByBrowsename(server, istantiatedObject, UA_QUALIFIEDNAME(1, "cityname-variable"));
+            UA_NodeId citynameVariable = findNodeIdByBrowsename(server, istantiatedObject, CITYNAME_VARIABLE_QUALIFIEDNAME);
             
             //Inizializza variabile cityName
             UA_String cityName = UA_STRING(locatioName);
