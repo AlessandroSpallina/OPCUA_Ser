@@ -1,9 +1,5 @@
 #include "utils.h"
 
-#include <open62541/types.h>
-#include <open62541/types_generated_handling.h>
-#include <open62541/server.h>
-
 /* loadFile parses the certificate file.
  *
  * @param  path               specifies the file name given in argv[]
@@ -37,28 +33,58 @@ UA_ByteString loadFile(const char *path) {
         return fileContents;
 }
 
-// ritorna il primo nodo con reference hascomponent a partire da un nodo parent, dato il qualified name
-UA_NodeId findNodeIdByBrowsename(UA_Server *server, UA_NodeId startingNode, UA_QualifiedName qualifiedName) {
-    UA_RelativePathElement rpe;
-    UA_RelativePathElement_init(&rpe);
-    rpe.referenceTypeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT);
-    rpe.isInverse = false;
-    rpe.includeSubtypes = false;
-    rpe.targetName = qualifiedName;
+// controlla che l'usage sia del tipo: server.exe [--cert <pathCertificato> --key <pathChiave>] [--url <customUdpUadpUrl>] 
+applicationConfig_t parseArgument(int argc, char* argv[]) {
 
-    UA_BrowsePath bp;
-    UA_BrowsePath_init(&bp);
-    bp.startingNode = startingNode;
-    bp.relativePath.elementsSize = 1;
-    bp.relativePath.elements = &rpe;
+    applicationConfig_t appConf = { false, true, NULL, NULL, NULL };
 
-    UA_BrowsePathResult bpr = UA_Server_translateBrowsePathToNodeIds(server, &bp);
+    if (argc == 1)
+        return appConf;
 
-    if (bpr.statusCode != UA_STATUSCODE_GOOD || bpr.targetsSize < 1)
-        return UA_NODEID_NULL;
+    if (strncmp(argv[1], "-h", 2) == 0) {
+        fprintf(stderr, "Usage: server.exe [--cert <pathCertificato> --key <pathChiave>] [--url <customUdpUadpUrl>]\n");
+        exit(EXIT_SUCCESS);
+    }
 
-    UA_NodeId toReturn = bpr.targets[0].targetId.nodeId;
-    UA_BrowsePathResult_clear(&bpr);
+    for (int i = 1; i < argc - 1; i++) {
+        if (strncmp(argv[i], "--cert", 6) == 0) {
+            if (strncmp(argv[i + 2], "--key", 5) == 0) {
+                appConf.encryption = true;
+                appConf.certPath = argv[i + 1];
+                appConf.keyPath = argv[i + 3];
+                i += 3;
+            }
+        }
+        else if (strncmp(argv[i], "--url", 5) == 0) {
+            if (strncmp(argv[i + 1], "opc.udp://", 10) == 0) {
+                appConf.usingUdpUadp = true;
+                appConf.customUrl = argv[i + 1];
+                i += 1;
+            }
+        }
+    }
 
-    return toReturn;
+    return appConf;
+}
+
+//Presentazione del server e visualizzazione della configurazione attuale
+void printWelcome(const applicationConfig_t appConf) {
+    printf("Welcome in OPC UA Server\n");
+    printf("You are running this process with following config:\n");
+    if (appConf.encryption) {
+        printf("* Using Encryption\n");
+        printf("    - Cert at %s\n", appConf.certPath);
+        printf("    - Key at %s\n", appConf.keyPath);
+    }
+    if (appConf.usingUdpUadp) {
+        printf("* Enabled PubSub with UDP UADP\n");
+        if (appConf.customUrl != NULL) {
+            printf("* UDP UADP custom url enabled\n");
+            printf("    - Custom url %s\n", appConf.customUrl);
+        }
+        else {
+            printf("    - Default url opc.udp://224.0.0.22:4840/\n");
+        }
+    }
+    printf("\n");
 }

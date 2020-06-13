@@ -125,12 +125,12 @@ void addDataSetWriter(UA_Server *server, UA_NodeId publishedDataSetIdent, UA_Nod
                                    &dataSetWriterConfig, &dataSetWriterIdent);
 }
 
-int configurePubSub(UA_Server* server, UA_ServerConfig* config, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl, fieldToPublish fields[], int fieldsCount) {
+void configurePubSub(UA_Server* server, UA_ServerConfig* config, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl, fieldToPublish_t fields[], int fieldsCount) {
 
     config->pubsubTransportLayers = (UA_PubSubTransportLayer*)UA_calloc(2, sizeof(UA_PubSubTransportLayer));
     if (!config->pubsubTransportLayers) {
         UA_Server_delete(server);
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
     config->pubsubTransportLayers[0] = UA_PubSubTransportLayerUDPMP();
     config->pubsubTransportLayersSize++;
