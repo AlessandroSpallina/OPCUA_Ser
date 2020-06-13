@@ -1,9 +1,10 @@
-
 #include <open62541/plugin/log_stdout.h>
 #include <open62541/plugin/pubsub_udp.h>
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
+
 #include "pubsub.h"
+#include "informationmodel.h"
 
 /*
    Pubblicazione delle informazioni provenienti da Information Model su UDP Multicast utilizzando codifica UADP
@@ -96,10 +97,11 @@ void addWriterGroup(UA_Server *server, UA_NodeId connectionIdent, UA_NodeId *wri
         /* Change message settings of writerGroup to send PublisherId,
          * WriterGroupId in GroupHeader and DataSetWriterId in PayloadHeader
          * of NetworkMessage */
-        writerGroupMessage->networkMessageContentMask          = (UA_UadpNetworkMessageContentMask)(UA_UADPNETWORKMESSAGECONTENTMASK_PUBLISHERID |
-                                                                                                    (UA_UadpNetworkMessageContentMask)UA_UADPNETWORKMESSAGECONTENTMASK_GROUPHEADER |
-                                                                                                    (UA_UadpNetworkMessageContentMask)UA_UADPNETWORKMESSAGECONTENTMASK_WRITERGROUPID |
-                                                                                                    (UA_UadpNetworkMessageContentMask)UA_UADPNETWORKMESSAGECONTENTMASK_PAYLOADHEADER);
+        writerGroupMessage->networkMessageContentMask = (UA_UadpNetworkMessageContentMask)(UA_UADPNETWORKMESSAGECONTENTMASK_PUBLISHERID |
+                                                        (UA_UadpNetworkMessageContentMask)UA_UADPNETWORKMESSAGECONTENTMASK_GROUPHEADER |
+                                                        (UA_UadpNetworkMessageContentMask)UA_UADPNETWORKMESSAGECONTENTMASK_WRITERGROUPID |
+                                                        (UA_UadpNetworkMessageContentMask)UA_UADPNETWORKMESSAGECONTENTMASK_PAYLOADHEADER);
+
         writerGroupConfig.messageSettings.content.decoded.data = writerGroupMessage;
         UA_Server_addWriterGroup(server, connectionIdent, &writerGroupConfig, writerGroupIdent);
         UA_Server_setWriterGroupOperational(server, *writerGroupIdent);
@@ -121,12 +123,10 @@ void addDataSetWriter(UA_Server *server, UA_NodeId publishedDataSetIdent, UA_Nod
         dataSetWriterConfig.name = UA_STRING(dataSetWriter);
         dataSetWriterConfig.dataSetWriterId = 62541;
         dataSetWriterConfig.keyFrameCount = 10;
-        UA_Server_addDataSetWriter(server, writerGroupIdent, publishedDataSetIdent,
-                                   &dataSetWriterConfig, &dataSetWriterIdent);
+        UA_Server_addDataSetWriter(server, writerGroupIdent, publishedDataSetIdent, &dataSetWriterConfig, &dataSetWriterIdent);
 }
 
-void configurePubSub(UA_Server* server, UA_ServerConfig* config, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl, fieldToPublish_t fields[], int fieldsCount) {
-
+void configurePubSubUdp(UA_Server *server, UA_ServerConfig *config) {
     config->pubsubTransportLayers = (UA_PubSubTransportLayer*)UA_calloc(2, sizeof(UA_PubSubTransportLayer));
     if (!config->pubsubTransportLayers) {
         UA_Server_delete(server);
@@ -134,15 +134,17 @@ void configurePubSub(UA_Server* server, UA_ServerConfig* config, UA_String trans
     }
     config->pubsubTransportLayers[0] = UA_PubSubTransportLayerUDPMP();
     config->pubsubTransportLayersSize++;
+}
 
+void runPubSub(UA_Server* server, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl, const int fieldsCount, exposedNode_t fieldsToPublish[]) {
+    
     UA_NodeId connectionIdent, publishedDataSetIdent, writerGroupIdent;
-
 
     addPubSubConnection(server, &transportProfile, &networkAddressUrl, &connectionIdent, "Connection1");
     addPublishedDataSet(server, &publishedDataSetIdent, "PDS1");
 
     for (int i = 0; i < fieldsCount; i++) {
-        addDataSetField(server, publishedDataSetIdent, fields[i].fieldName, fields[i].variableId);
+        addDataSetField(server, publishedDataSetIdent, fieldsToPublish[i].nodeName, fieldsToPublish[i].nodeId);
     }
 
     addWriterGroup(server, connectionIdent, &writerGroupIdent, "WriterGroup1");

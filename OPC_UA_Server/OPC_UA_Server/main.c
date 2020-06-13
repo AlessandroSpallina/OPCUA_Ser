@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 
         //Inizializza il server e ServerConfig
         UA_Server *server = UA_Server_new();
-        UA_ServerConfig* config = UA_Server_getConfig(server);
+        UA_ServerConfig *config = UA_Server_getConfig(server);
 
         UA_StatusCode retval;
 
@@ -58,26 +58,25 @@ int main(int argc, char *argv[]) {
         wtype = defineObjectTypeWeather(server);
 
         // Definisco N istanze delle stazioni meteo. Ritorna il NodeId che identifica le istanze
-        UA_NodeId weatherStations[WEATHER_STATIONS_COUNT] = {
-            instantiateWeatherObject(server, wtype, "Catania"),
-            instantiateWeatherObject(server, wtype, "Enna"),
-            instantiateWeatherObject(server, wtype, "Palermo"),
-            instantiateWeatherObject(server, wtype, "Agrigento"),
-            instantiateWeatherObject(server, wtype, "Siracusa"),
-            instantiateWeatherObject(server, wtype, "Trapani"),
-            instantiateWeatherObject(server, wtype, "Ragusa"),
-            instantiateWeatherObject(server, wtype, "Catanissetta"),
+        const exposedNode_t weatherStations[WEATHER_STATIONS_COUNT] = {
+            {"Catania",      instantiateWeatherObject(server, wtype, "Catania")},
+            {"Enna",         instantiateWeatherObject(server, wtype, "Enna")},
+            {"Palermo",      instantiateWeatherObject(server, wtype, "Palermo")},
+            {"Agrigento",    instantiateWeatherObject(server, wtype, "Agrigento")},
+            {"Siracusa",     instantiateWeatherObject(server, wtype, "Siracusa")},
+            {"Trapani",      instantiateWeatherObject(server, wtype, "Trapani")},
+            {"Ragusa",       instantiateWeatherObject(server, wtype, "Ragusa")},
+            {"Catanissetta", instantiateWeatherObject(server, wtype, "Catanissetta")},
         };
 
         // Setto le callback per le letture e scritture sulle variabili temperature e humididty
         for (int i = 0; i < WEATHER_STATIONS_COUNT; i++) {
-            UA_NodeId temperature = findNodeIdByBrowsename(server, weatherStations[i], UA_QUALIFIEDNAME(1, "temperature-variable"));
+            UA_NodeId temperature = findNodeIdByBrowsename(server, weatherStations[i].nodeId, TEMPERATURE_VARIABLE_QUALIFIEDNAME);
             addValueCallbackToVariable(server, temperature, beforeReadTemperature, afterWriteTemperature);
 
-            UA_NodeId humidity = findNodeIdByBrowsename(server, weatherStations[i], UA_QUALIFIEDNAME(1, "humidity-variable"));
+            UA_NodeId humidity = findNodeIdByBrowsename(server, weatherStations[i].nodeId, HUMIDITY_VARIABLE_QUALIFIEDNAME);
             addValueCallbackToVariable(server, humidity, beforeReadHumidity, afterWriteHumidity);
         }
-
 
         //PubSub abilitato con profilo UDP UADP
         if (appConf.usingUdpUadp) {
@@ -90,14 +89,19 @@ int main(int argc, char *argv[]) {
                 networkAddressUrl.url = UA_STRING(appConf.customUrl);
             }
 
-           /*funzione custom per la ricerca del NodeId della variabile da pubblicare. Riceve in ingresso il NodeId del Parent Object e il QualifiedName (BrowseName) e restituisce l'id della variabile/risorsa da pubblicare  */
-            fieldToPublish_t tmp[] = {
-                { "temperatureCatania", findNodeIdByBrowsename(server, weatherStations[0], UA_QUALIFIEDNAME(1, "temperature-variable")) },
-                { "temperatureEnna", findNodeIdByBrowsename(server, weatherStations[2], UA_QUALIFIEDNAME(1, "temperature-variable")) }
-            };
+            // array che detiene i campi da publicare nel dataset message => decidiamo di pubblicare le temperature di tutte le stazioni meteo
+            exposedNode_t fieldsToPublish[WEATHER_STATIONS_COUNT];
+
+            for (int i = 0; i < WEATHER_STATIONS_COUNT; i++) {
+                char tmp[120];
+                sprintf(tmp, "%sTemperature", weatherStations[i].nodeName);
+                fieldsToPublish[i].nodeName = tmp;
+                fieldsToPublish[i].nodeId = findNodeIdByBrowsename(server, weatherStations[i].nodeId, TEMPERATURE_VARIABLE_QUALIFIEDNAME);
+            }
 
             //custom function per config
-            configurePubSub(server, config, transportProfile, networkAddressUrl, tmp, 2);
+            configurePubSubUdp(server, config);
+
         }
 
         signal(SIGINT, stopHandler);
