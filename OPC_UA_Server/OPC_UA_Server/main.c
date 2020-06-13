@@ -99,9 +99,9 @@ int main(int argc, char *argv[]) {
                 fieldsToPublish[i].nodeId = findNodeIdByBrowsename(server, weatherStations[i].nodeId, TEMPERATURE_VARIABLE_QUALIFIEDNAME);
             }
 
-            //custom function per config
-            configurePubSubUdp(server, config);
-            runPubSub(server, transportProfile, networkAddressUrl, WEATHER_STATIONS_COUNT, fieldsToPublish);
+            // configura udp uadp
+            addPubSubUdpToServerConfig(server, config);
+            configurePubSubNetworkMessage(server, transportProfile, networkAddressUrl, WEATHER_STATIONS_COUNT, fieldsToPublish);
         }
 
         signal(SIGINT, stopHandler);

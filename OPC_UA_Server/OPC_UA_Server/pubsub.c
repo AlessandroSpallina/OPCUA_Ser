@@ -4,15 +4,13 @@
 #include <open62541/server_config_default.h>
 
 #include "pubsub.h"
-#include "informationmodel.h"
 
 /*
    Pubblicazione delle informazioni provenienti da Information Model su UDP Multicast utilizzando codifica UADP
  */
 
 // ritorna per riferimento la connectionIdent
-void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_NetworkAddressUrlDataType *networkAddressUrl, UA_NodeId *connectionIdent, char *connectionName){
-
+void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_NetworkAddressUrlDataType *networkAddressUrl, UA_NodeId *connectionIdent, char *connectionName, int publisherId) {
         UA_PubSubConnectionConfig connectionConfig;
 
         memset(&connectionConfig, 0, sizeof(connectionConfig));
@@ -21,11 +19,8 @@ void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_Netw
         connectionConfig.enabled = UA_TRUE;
         UA_Variant_setScalar(&connectionConfig.address, networkAddressUrl, &UA_TYPES[UA_TYPES_NETWORKADDRESSURLDATATYPE]);
 
-        // @findme modifiche compatibilità publisher e subscriber
-        //connectionConfig.publisherId.string = UA_STRING(connectionName);
-        connectionConfig.publisherId.numeric = 2234;
-        
-        
+        connectionConfig.publisherId.numeric = publisherId;
+                
         UA_Server_addPubSubConnection(server, &connectionConfig, connectionIdent);
 }
 
@@ -38,7 +33,7 @@ void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_Netw
  * connection. */
 
 // Ritorna "per riferimento" il publishedDataSetIdent
-void addPublishedDataSet(UA_Server *server, UA_NodeId *publishedDataSetIdent, char* PDSName) {
+void addPublishedDataSet(UA_Server *server, UA_NodeId *publishedDataSetIdent, char *PDSName) {
         /* The PublishedDataSetConfig contains all necessary public
          * informations for the creation of a new PublishedDataSet */
         UA_PublishedDataSetConfig publishedDataSetConfig;
@@ -66,8 +61,7 @@ void addDataSetField(UA_Server *server, UA_NodeId publishedDataSetIdent, char *f
         dataSetFieldConfig.field.variable.promotedField = UA_FALSE;
         dataSetFieldConfig.field.variable.publishParameters.publishedVariable = variableID;
         dataSetFieldConfig.field.variable.publishParameters.attributeId = UA_ATTRIBUTEID_VALUE;
-        UA_Server_addDataSetField(server, publishedDataSetIdent,
-                                  &dataSetFieldConfig, &dataSetFieldIdent);
+        UA_Server_addDataSetField(server, publishedDataSetIdent, &dataSetFieldConfig, &dataSetFieldIdent);
 }
 
 /**
@@ -77,17 +71,17 @@ void addDataSetField(UA_Server *server, UA_NodeId publishedDataSetIdent, char *f
  * configuration parameters for the message creation. */
 
 // Ritorna per riferimento la writerGroupIdent
-void addWriterGroup(UA_Server *server, UA_NodeId connectionIdent, UA_NodeId *writerGroupIdent, char *writerGroupName) {
+void addWriterGroup(UA_Server *server, UA_NodeId connectionIdent, UA_NodeId *writerGroupIdent, char *writerGroupName, int writerGroupId, int publishingInterval) {
         /* Now we create a new WriterGroupConfig and add the group to the existing
          * PubSubConnection. */
         UA_WriterGroupConfig writerGroupConfig;
         memset(&writerGroupConfig, 0, sizeof(UA_WriterGroupConfig));
         writerGroupConfig.name = UA_STRING(writerGroupName);
-        writerGroupConfig.publishingInterval = 1000;
+        writerGroupConfig.publishingInterval = publishingInterval;
         writerGroupConfig.enabled = UA_FALSE;
-        writerGroupConfig.writerGroupId = 100;
+        writerGroupConfig.writerGroupId = writerGroupId;
         writerGroupConfig.encodingMimeType = UA_PUBSUB_ENCODING_UADP;
-        writerGroupConfig.messageSettings.encoding             = UA_EXTENSIONOBJECT_DECODED;
+        writerGroupConfig.messageSettings.encoding = UA_EXTENSIONOBJECT_DECODED;
         writerGroupConfig.messageSettings.content.decoded.type = &UA_TYPES[UA_TYPES_UADPWRITERGROUPMESSAGEDATATYPE];
         /* The configuration flags for the messages are encapsulated inside the
          * message- and transport settings extension objects. These extension
@@ -114,19 +108,19 @@ void addWriterGroup(UA_Server *server, UA_NodeId connectionIdent, UA_NodeId *wri
  * A DataSetWriter (DSW) is the glue between the WG and the PDS. The DSW is
  * linked to exactly one PDS and contains additional informations for the
  * message generation. */
-void addDataSetWriter(UA_Server *server, UA_NodeId publishedDataSetIdent, UA_NodeId writerGroupIdent, char *dataSetWriter) {
+void addDataSetWriter(UA_Server *server, UA_NodeId publishedDataSetIdent, UA_NodeId writerGroupIdent, char *dataSetWriterName, int dataSetWriterId) {
         /* We need now a DataSetWriter within the WriterGroup. This means we must
          * create a new DataSetWriterConfig and add call the addWriterGroup function. */
         UA_NodeId dataSetWriterIdent;
         UA_DataSetWriterConfig dataSetWriterConfig;
         memset(&dataSetWriterConfig, 0, sizeof(UA_DataSetWriterConfig));
-        dataSetWriterConfig.name = UA_STRING(dataSetWriter);
-        dataSetWriterConfig.dataSetWriterId = 62541;
-        dataSetWriterConfig.keyFrameCount = 10;
+        dataSetWriterConfig.name = UA_STRING(dataSetWriterName);
+        dataSetWriterConfig.dataSetWriterId = dataSetWriterId;
+        // @findme dataSetWriterConfig.keyFrameCount = 10;
         UA_Server_addDataSetWriter(server, writerGroupIdent, publishedDataSetIdent, &dataSetWriterConfig, &dataSetWriterIdent);
 }
 
-void configurePubSubUdp(UA_Server *server, UA_ServerConfig *config) {
+void addPubSubUdpToServerConfig(UA_Server *server, UA_ServerConfig *config) {
     config->pubsubTransportLayers = (UA_PubSubTransportLayer*)UA_calloc(2, sizeof(UA_PubSubTransportLayer));
     if (!config->pubsubTransportLayers) {
         UA_Server_delete(server);
@@ -136,17 +130,17 @@ void configurePubSubUdp(UA_Server *server, UA_ServerConfig *config) {
     config->pubsubTransportLayersSize++;
 }
 
-void runPubSub(UA_Server* server, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl, const int fieldsCount, exposedNode_t fieldsToPublish[]) {
+void configurePubSubNetworkMessage(UA_Server *server, UA_String transportProfile, UA_NetworkAddressUrlDataType networkAddressUrl, const int fieldsCount, exposedNode_t fieldsToPublish[]) {
     
     UA_NodeId connectionIdent, publishedDataSetIdent, writerGroupIdent;
 
-    addPubSubConnection(server, &transportProfile, &networkAddressUrl, &connectionIdent, "Connection1");
+    addPubSubConnection(server, &transportProfile, &networkAddressUrl, &connectionIdent, "Connection1", 2234);
     addPublishedDataSet(server, &publishedDataSetIdent, "PDS1");
 
     for (int i = 0; i < fieldsCount; i++) {
         addDataSetField(server, publishedDataSetIdent, fieldsToPublish[i].nodeName, fieldsToPublish[i].nodeId);
     }
 
-    addWriterGroup(server, connectionIdent, &writerGroupIdent, "WriterGroup1");
-    addDataSetWriter(server, publishedDataSetIdent, writerGroupIdent, "DataSetWriter1");
+    addWriterGroup(server, connectionIdent, &writerGroupIdent, "WriterGroup1", 100, 1000);
+    addDataSetWriter(server, publishedDataSetIdent, writerGroupIdent, "DataSetWriter1", 62541);
 }
