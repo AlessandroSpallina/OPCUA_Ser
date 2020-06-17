@@ -25,12 +25,13 @@ void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_Netw
 }
 
 /**
- * **PublishedDataSet handling**
+ * **PublishedDataSet**
+ * Il PublishedDataaSet (PDS) e PubSubConnection sono le entita a livello piu alto 
+ * e possono esistere in maniera indipendente. PDS contiene la collezione dei campi pubblicati. 
+ * Tutti gli altri elementi PubSub sono direttamente o indirettamente collegati al PDS o alla connessione
  *
- * The PublishedDataSet (PDS) and PubSubConnection are the toplevel entities and
- * can exist alone. The PDS contains the collection of the published fields. All
- * other PubSub elements are directly or indirectly linked with the PDS or
- * connection. */
+ *
+ */
 
 // Ritorna "per riferimento" il publishedDataSetIdent
 void addPublishedDataSet(UA_Server *server, UA_NodeId *publishedDataSetIdent, char *PDSName) {
@@ -46,9 +47,9 @@ void addPublishedDataSet(UA_Server *server, UA_NodeId *publishedDataSetIdent, ch
 
 /**
  * **DataSetField handling**
- *
- * The DataSetField (DSF) is part of the PDS and describes exactly one published
- * field. */
+ * Il DataSetField (DSF) è parte del PublishedDataSet e descrive esattamente un campo da pubblicare
+ * 
+ */
 
 // Aggiunge come field il campo value della variableId in ingresso
 void addDataSetField(UA_Server *server, UA_NodeId publishedDataSetIdent, char *fieldName, UA_NodeId variableID) {
@@ -65,10 +66,10 @@ void addDataSetField(UA_Server *server, UA_NodeId publishedDataSetIdent, char *f
 }
 
 /**
- * **WriterGroup handling**
- *
- * The WriterGroup (WG) is part of the connection and contains the primary
- * configuration parameters for the message creation. */
+ * **WriterGroup **
+ * Il writergroup è parte della connessione e contiene la configurazioen principale dei parametri 
+ * per la creazione del messaggio
+ */
 
 // Ritorna per riferimento la writerGroupIdent
 void addWriterGroup(UA_Server *server, UA_NodeId connectionIdent, UA_NodeId *writerGroupIdent, char *writerGroupName, int writerGroupId, int publishingInterval) {
@@ -83,14 +84,8 @@ void addWriterGroup(UA_Server *server, UA_NodeId connectionIdent, UA_NodeId *wri
         writerGroupConfig.encodingMimeType = UA_PUBSUB_ENCODING_UADP;
         writerGroupConfig.messageSettings.encoding = UA_EXTENSIONOBJECT_DECODED;
         writerGroupConfig.messageSettings.content.decoded.type = &UA_TYPES[UA_TYPES_UADPWRITERGROUPMESSAGEDATATYPE];
-        /* The configuration flags for the messages are encapsulated inside the
-         * message- and transport settings extension objects. These extension
-         * objects are defined by the standard. e.g.
-         * UadpWriterGroupMessageDataType */
         UA_UadpWriterGroupMessageDataType *writerGroupMessage  = UA_UadpWriterGroupMessageDataType_new();
-        /* Change message settings of writerGroup to send PublisherId,
-         * WriterGroupId in GroupHeader and DataSetWriterId in PayloadHeader
-         * of NetworkMessage */
+
         writerGroupMessage->networkMessageContentMask = (UA_UadpNetworkMessageContentMask)(UA_UADPNETWORKMESSAGECONTENTMASK_PUBLISHERID |
                                                         (UA_UadpNetworkMessageContentMask)UA_UADPNETWORKMESSAGECONTENTMASK_GROUPHEADER |
                                                         (UA_UadpNetworkMessageContentMask)UA_UADPNETWORKMESSAGECONTENTMASK_WRITERGROUPID |
@@ -103,20 +98,23 @@ void addWriterGroup(UA_Server *server, UA_NodeId connectionIdent, UA_NodeId *wri
 }
 
 /**
- * **DataSetWriter handling**
- *
- * A DataSetWriter (DSW) is the glue between the WG and the PDS. The DSW is
- * linked to exactly one PDS and contains additional informations for the
- * message generation. */
+ * **DataSetWriter**
+ * Un dataSetWriter (DSW) è il collante tra il WriterGroup e PublishedDataSet. Il DSW è
+ * collegato esattamente ad un PDS e contiene le informazioni per la generazione dei messaggi
+ * . */
 void addDataSetWriter(UA_Server *server, UA_NodeId publishedDataSetIdent, UA_NodeId writerGroupIdent, char *dataSetWriterName, int dataSetWriterId) {
-        /* We need now a DataSetWriter within the WriterGroup. This means we must
-         * create a new DataSetWriterConfig and add call the addWriterGroup function. */
+        /*E' necessario inserire un dataSetWriter all'interno di un writerGroup. Questo impone la 
+        generazione della struttura di configurazione DataSetWriterConfig */
         UA_NodeId dataSetWriterIdent;
         UA_DataSetWriterConfig dataSetWriterConfig;
         memset(&dataSetWriterConfig, 0, sizeof(UA_DataSetWriterConfig));
         dataSetWriterConfig.name = UA_STRING(dataSetWriterName);
         dataSetWriterConfig.dataSetWriterId = dataSetWriterId;
-        // @findme dataSetWriterConfig.keyFrameCount = 10;
+/*
+* Se decommentato abilita il meccanismo delta/key Frame. è necessaria la compilazione della libreria con l'apposito flag Cmake
+*/
+
+        //dataSetWriterConfig.keyFrameCount = 10;
         UA_Server_addDataSetWriter(server, writerGroupIdent, publishedDataSetIdent, &dataSetWriterConfig, &dataSetWriterIdent);
 }
 
