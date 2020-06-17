@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
             // array che detiene i campi da publicare nel dataset message => decidiamo di pubblicare le temperature di tutte le stazioni meteo
             exposedNode_t fieldsToPublish[WEATHER_STATIONS_COUNT];
 
+            //preparazione dei campi da pubblicare
             for (int i = 0; i < WEATHER_STATIONS_COUNT; i++) {
                 char tmp[120];
                 sprintf(tmp, "%sTemperature", weatherStations[i].nodeName);

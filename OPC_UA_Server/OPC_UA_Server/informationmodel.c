@@ -22,6 +22,7 @@ UA_NodeId defineObjectTypeWeather(UA_Server* server) {
     UA_VariableAttributes vAttr = UA_VariableAttributes_default;
     vAttr.description = UA_LOCALIZEDTEXT("en-US", "Name of the city for which record Temp/Hum");
     vAttr.displayName = UA_LOCALIZEDTEXT("en-US", "CityName");
+    vAttr.dataType = UA_TYPES[UA_TYPES_STRING].typeId;
     vAttr.valueRank = UA_VALUERANK_SCALAR;
     UA_Server_addVariableNode(server, UA_NODEID_NUMERIC(1, 0), weatherId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         CITYNAME_VARIABLE_QUALIFIEDNAME, UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), vAttr, NULL, &cityNameId);
