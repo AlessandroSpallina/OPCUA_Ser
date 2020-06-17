@@ -8,7 +8,7 @@
 #define HUMIDITY_VARIABLE_QUALIFIEDNAME UA_QUALIFIEDNAME(1, "humidity-variable")
 
 typedef struct exposedNode {
-    char* nodeName;
+    char nodeName[120];
     UA_NodeId nodeId;
 } exposedNode_t;
 

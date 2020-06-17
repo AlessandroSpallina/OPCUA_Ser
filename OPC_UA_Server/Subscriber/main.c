@@ -22,6 +22,10 @@
 #include <signal.h>
 #include <stdlib.h>
 
+#define WEATHER_STATIONS_COUNT 8
+
+const char cities[WEATHER_STATIONS_COUNT][120] = {"Catania", "Enna", "Palermo", "Agrigento", "Siracusa", "Trapani", "Ragusa", "Caltanissetta"};
+
 UA_NodeId connectionIdentifier;
 UA_NodeId readerGroupIdentifier;
 UA_NodeId readerIdentifier;
@@ -141,22 +145,19 @@ void fillTestDataSetMetaData(UA_DataSetMetaDataType* pMetaData) {
     /* Static definition of number of fields size to 4 to create four different
      * targetVariables of distinct datatype
      * Currently the publisher sends only DateTime data type */
-    pMetaData->fieldsSize = 2;
+    pMetaData->fieldsSize = WEATHER_STATIONS_COUNT;
     pMetaData->fields = (UA_FieldMetaData*)UA_Array_new(pMetaData->fieldsSize, &UA_TYPES[UA_TYPES_FIELDMETADATA]);
 
+    for (int i = 0; i < WEATHER_STATIONS_COUNT; i++) {
+        char tmp[120];
+        sprintf(tmp, "%sTemperatureReceived", cities[i]);
 
-    UA_FieldMetaData_init(&pMetaData->fields[0]);
-    UA_NodeId_copy(&UA_TYPES[UA_TYPES_FLOAT].typeId, &pMetaData->fields[0].dataType);
-    pMetaData->fields[0].builtInType = UA_NS0ID_FLOAT;
-    pMetaData->fields[0].name = UA_STRING("TemperatureCatania");
-    pMetaData->fields[0].valueRank = -1; /* scalar */
-
-    UA_FieldMetaData_init(&pMetaData->fields[1]);
-    UA_NodeId_copy(&UA_TYPES[UA_TYPES_FLOAT].typeId, &pMetaData->fields[1].dataType);
-    pMetaData->fields[1].builtInType = UA_NS0ID_FLOAT;
-    pMetaData->fields[1].name = UA_STRING("TemperatureMonciuffi");
-    pMetaData->fields[1].valueRank = -1; /* scalar */
-
+        UA_FieldMetaData_init(&pMetaData->fields[i]);
+        UA_NodeId_copy(&UA_TYPES[UA_TYPES_FLOAT].typeId, &pMetaData->fields[i].dataType);
+        pMetaData->fields[i].builtInType = UA_NS0ID_FLOAT;
+        pMetaData->fields[i].name = UA_STRING_ALLOC(tmp);
+        pMetaData->fields[i].valueRank = -1; /* scalar */
+    }
 }
 
 UA_Boolean running = true;

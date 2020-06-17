@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
             {"Siracusa",     instantiateWeatherObject(server, wtype, "Siracusa")},
             {"Trapani",      instantiateWeatherObject(server, wtype, "Trapani")},
             {"Ragusa",       instantiateWeatherObject(server, wtype, "Ragusa")},
-            {"Catanissetta", instantiateWeatherObject(server, wtype, "Catanissetta")},
+            {"Caltanissetta", instantiateWeatherObject(server, wtype, "Caltanissetta")},
         };
 
         // Setto le callback per le letture e scritture sulle variabili temperature e humididty
@@ -95,7 +95,8 @@ int main(int argc, char *argv[]) {
             for (int i = 0; i < WEATHER_STATIONS_COUNT; i++) {
                 char tmp[120];
                 sprintf(tmp, "%sTemperature", weatherStations[i].nodeName);
-                fieldsToPublish[i].nodeName = tmp;
+
+                strcpy(fieldsToPublish[i].nodeName, tmp);
                 fieldsToPublish[i].nodeId = findNodeIdByBrowsename(server, weatherStations[i].nodeId, TEMPERATURE_VARIABLE_QUALIFIEDNAME);
             }
 
