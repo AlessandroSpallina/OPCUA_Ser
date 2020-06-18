@@ -26,22 +26,18 @@ void addPubSubConnection(UA_Server *server, UA_String *transportProfile, UA_Netw
 
 /**
  * **PublishedDataSet**
- * Il PublishedDataaSet (PDS) e PubSubConnection sono le entita a livello piu alto 
+ * Il PublishedDataSet (PDS) e PubSubConnection sono le entita a livello piu alto 
  * e possono esistere in maniera indipendente. PDS contiene la collezione dei campi pubblicati. 
  * Tutti gli altri elementi PubSub sono direttamente o indirettamente collegati al PDS o alla connessione
- *
- *
  */
 
 // Ritorna "per riferimento" il publishedDataSetIdent
 void addPublishedDataSet(UA_Server *server, UA_NodeId *publishedDataSetIdent, char *PDSName) {
-        /* The PublishedDataSetConfig contains all necessary public
-         * informations for the creation of a new PublishedDataSet */
+
         UA_PublishedDataSetConfig publishedDataSetConfig;
         memset(&publishedDataSetConfig, 0, sizeof(UA_PublishedDataSetConfig));
         publishedDataSetConfig.publishedDataSetType = UA_PUBSUB_DATASET_PUBLISHEDITEMS;
         publishedDataSetConfig.name = UA_STRING(PDSName);
-        /* Create new PublishedDataSet based on the PublishedDataSetConfig. */
         UA_Server_addPublishedDataSet(server, &publishedDataSetConfig, publishedDataSetIdent);
 }
 
@@ -50,7 +46,6 @@ void addPublishedDataSet(UA_Server *server, UA_NodeId *publishedDataSetIdent, ch
  * Il DataSetField (DSF) è parte del PublishedDataSet e descrive esattamente un campo da pubblicare
  * 
  */
-
 // Aggiunge come field il campo value della variableId in ingresso
 void addDataSetField(UA_Server *server, UA_NodeId publishedDataSetIdent, char *fieldName, UA_NodeId variableID) {
         /* Add a field to the previous created PublishedDataSet */
@@ -67,7 +62,7 @@ void addDataSetField(UA_Server *server, UA_NodeId publishedDataSetIdent, char *f
 
 /**
  * **WriterGroup **
- * Il writergroup è parte della connessione e contiene la configurazioen principale dei parametri 
+ * Il writergroup è parte della connessione e contiene la configurazione principale dei parametri 
  * per la creazione del messaggio
  */
 
