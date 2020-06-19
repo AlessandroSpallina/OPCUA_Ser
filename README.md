@@ -10,30 +10,29 @@ Implementa inoltre un Publisher secondo il meccanismo PubSub *brokerless* utiliz
 Viene, inoltre, rilasciato un ulteriore Server OPC UA che agisce da Subscriber al fine di verificare il corretto funzionamento del maccanismo PubSub.
 Questo Server processa i pacchetti ricevuti dal Publisher e ne espone i dati sull'AddressSpace.
 
-Maggiori dettagli sullo stack C utilizzato sono disponibili ai seguenti link 
+Maggiori dettagli sullo stack C utilizzato sono disponibili ai seguenti link:
 * [Open62541](https://open62541.org/) 
 * [Open62541 - Docs](https://open62541.org/doc/current/)
 * [Open62541 - Github](https://github.com/open62541/open62541)
 
-Maggiori dettagli sul profilo di trasporto implementato sono disponibili al seguente link
-* [UDP UADP](http://opcfoundation-onlineapplications.org/ProfileReporting/index.htm?ModifyProfile.aspx?ProfileID=2faacf36-fea4-4004-be6e-89456642e831)
+Maggiori dettagli sul profilo di trasporto implementato sono disponibili al seguente [link](http://opcfoundation-onlineapplications.org/ProfileReporting/index.htm?ModifyProfile.aspx?ProfileID=2faacf36-fea4-4004-be6e-89456642e831)
 
-Sono state utilizzate librerie standard C e open62541, questa è multipiattaforma, a meno di alcune funzionalità sperimentali che non sono state incluse nel progetto.
+Sono state utilizzate librerie standard C e open62541. Questa è multipiattaforma, a meno di alcune funzionalità sperimentali che non sono state incluse nel progetto.
 
-Si rilascia il codice sorgente corredato di _Solution_ Visual Studio, si consiglia quindi questo IDE per la compilazione del progetto su sistema operativo Windows. 
+Si rilascia il codice sorgente corredato di _Solution_ Visual Studio. Si consiglia quindi questo IDE per la compilazione del progetto su sistema operativo Windows. 
 
-Di seguito è riportata la procedura per il build delle dipendenze del progetto, istruzioni necessarie poichè la documentazione è carente di informazioni per l'installazione della libreria in ambiente Windows.
-Per informazioni su compilazione e installazione delle librerie in ambiente Linux si rimanda alla [documentazione ufficiale](https://open62541.org/doc/current/building.html) ritenuta esaustiva.
+Di seguito è riportata la procedura per build delle dipendenze del progetto, istruzioni necessarie poichè la documentazione è carente di informazioni per l'installazione della libreria in ambiente Windows.
+Per informazioni su compilazione e installazione delle librerie su Linux si rimanda alla [documentazione ufficiale](https://open62541.org/doc/current/building.html) ritenuta esaustiva.
 
-Specifiche tecniche sulle funzionalita del Server OPC UA e sul meccanismo PubSub sono disponibili nella [relazione finale](https://github.com/massimo-gollo/OPC_UA_Project/blob/develope/res/Relazione%20progetto%20Industrial%20Informatics%20.pdf)
+Le specifiche tecniche sulle funzionalità del Server OPC UA e sul meccanismo PubSub sono disponibili nella [relazione finale](https://github.com/massimo-gollo/OPC_UA_Project/blob/develope/res/Relazione%20progetto%20Industrial%20Informatics%20.pdf)
 
 ## Getting Started
 
 Tutti i progetti, librerie comprese, sono stati compilati in modalità win32 (x86).
 Configurazioni diverse non assicurano il successo della compilazione.
 
-Al fine di potere compilare con successo i due Server che implementano il Publisher e il Subscriber sono necessarie due versioni distinte di open62541, questo è dovuto al fatto che il team di sviluppo dello stack non ha ancora rilasciato le interfacce necessarie relative al Subscriber.
-Per ovviare a questa limitazione è necessario compilare open62541 come libreria statica e importare interfacce private della libreria, normalmente non visibili se si dovesse utilizzare open62541 come libreria di terze parti, condivisa e installata sul sistema operativo. 
+Al fine di poter compilare con successo i due Server che implementano il Publisher e il Subscriber sono necessarie due versioni distinte di open62541. Questo è dovuto al fatto che il team di sviluppo dello stack non ha ancora rilasciato le interfacce necessarie relative al Subscriber.
+Per ovviare a questa limitazione è necessario compilare open62541 come libreria statica e importare le interfacce private della libreria, normalmente non visibili se si dovesse utilizzare open62541 come libreria di terze parti, condivisa e installata sul sistema operativo. 
 Le interfacce del Publisher nella versione 1.1 della libreria sono già state rilasciate.
 
 ### Prerequisites
@@ -69,7 +68,7 @@ Successivamente selezionare il progetto *INSTALL* e compilare in modalità *Proj
 
 Il risultato dell'intera procedura è l'installazione della libreria sul sistema. 
 
-##### Open62541
+##### Open62541 (installazione su sitema operativo - dipendenza per il Publisher)
 
 Per la compilazione di Open62541, su una directory arbitraria
 ```
@@ -133,18 +132,63 @@ cd C:\Windows\System32
 regsvr32 open62541.dll
 ```
 
+##### Open62541 (libreria statica - dipendenza per il Subscriber)
+
+Aprire CMake-gui e selezionare come *source* il path
+``` 
+C:\path\to\open62541
+```
+e come *build* il path 
+```
+C:\path\to\open62541\build
+```
+Cliccare su Configure per generare la lista di parametri da abilitare necessari alle funzionalità del server.
+Il risultato dell'operazione sarà il seguente
+
+<details>
+  <summary>Cmake img (da aggiornare)</summary>
+  <img src="https://raw.githubusercontent.com/massimo-gollo/OPC_UA_Project/develope/res/imgs/cmake-open62541-linux.png?token=ACSJQODP5I44RBOMR4FZCZ265CTJU" alt="ca">
+  
+</details>
+
+La prima cosa da fare è abilitare i flag di compilazione
+```
+UA_NAMESPACE_ZERO FULL
+UA_ENABLE_PUBSUB
+UA_ENABLE_PUBSUB_INFORMATIONMODEL
+UA_BUILD_EXAMPLES
+```
+
+Adesso è possibile cliccare *Generate* per generare la soluzione **open62541.sln** sul path 
+```
+ C:\path\to\open62541\build
+```
+Aprire la soluzione con Visual Studio e fare build dell'intera soluzione.
+A questo punto sulla directory build/bin si avrà il file open62541.lib, libreria statica utile alla compilazione del Subscriber
+
+
 ### Configuration IDE
-Installata la libreria, per la compilazione dell'applicazione è necessario configurare l'IDE. 
-Nello specifico è necessario linkare la libreria open62541.lib e aggiungere certificato e chiave privata come argomenti per abilitare la cifratura e la firma. 
+Per la compilazione dell'applicazione è necessario configurare l'IDE. 
+
+Per il Publisher è necessario linkare la libreria open62541.lib installata sul sistema operativo, includere gli header e aggiungere certificato e chiave privata come argomenti per abilitare la cifratura e la firma. 
 
 ```
 git clone https://github.com/massimo-gollo/OPC_UA_Project.git
 ``` 
-Aprire la solutione `OPC_UA_SERVER` e successivamente cliccare su 
+Aprire la solutione `OPC_UA_SERVER` e successivamente tasto destro sul progetto OPC_UA_Server
 ```
-Project > OPC_UA_SERVER Properties > C/C++ > General > Additional Include Directories > Edit >  C:\Program Files(x86)\open62541\include
-Project > OPC_UA_SERVER Properties > Linker > Input > Additional Dependencies > Edit >          C:\Program Files(x86)\open62541\lib\open62541.lib
+Properties > C/C++ > General > Additional Include Directories > Edit >  C:\Program Files(x86)\open62541\include
+Properties > Linker > Input > Additional Dependencies > Edit >          C:\Program Files(x86)\open62541\lib\open62541.lib
 ``` 
+
+Per il Subscriber si dovrà linkare la libreria open62541.lib nella directory build del repository locale e includere gli header. 
+
+Aprire la solutione `OPC_UA_SERVER` e successivamente tasto destro sul progetto Subscriber
+```
+Properties > C/C++ > General > Additional Include Directories > Edit >  C:\path\to\open62541\examples;C:\path\to\open62541\arch;C:\path\to\open62541\src;C:\path\to\open62541\arch\win32;C:\path\to\open62541\include;C:\path\to\open62541\plugins\include;C:\path\to\open62541\deps;C:\path\to\open62541\src\pubsub;C:\path\to\open62541\build\src_generated;%(AdditionalIncludeDirectories)
+Properties > Linker > Input > Additional Dependencies > Edit >          C:\path\to\open62541\build\bin\Debug\open62541.lib;ws2_32.lib;iphlpapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib
+``` 
+
 
 #### Build and Running
 
