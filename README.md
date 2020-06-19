@@ -2,32 +2,39 @@
 
 ## Overview
 
-Il progetto consiste nella realizzazione di un custom server, secondo le specifiche imposte dallo standard IEC 62541, tramite l'utilizzo della libreria ANSI C Open62541 v1.1.
-Il server espone nodi personalizzati nell'AddressSpace. 
+Il progetto consiste nella realizzazione di un custom Server, secondo le specifiche imposte dallo standard IEC 62541, tramite l'utilizzo della libreria ANSI C Open62541 v1.1.
+Il Server espone nodi personalizzati nell'AddressSpace. 
 Implementa i meccanismi standard di sicurezza per la cifratura e la firma digitale.
-Implementa inoltre il meccanismo PubSub *brokerless* utilizzando il profilo di trasporto UDP UADP.
+Implementa inoltre un Publisher secondo il meccanismo PubSub *brokerless* utilizzando il profilo di trasporto UDP UADP.
 
-Maggiori dettagli sulla libreria sono disponibili ai seguenti link 
+Viene, inoltre, rilasciato un ulteriore Server OPC UA che agisce da Subscriber al fine di verificare il corretto funzionamento del maccanismo PubSub.
+Questo Server processa i pacchetti ricevuti dal Publisher e ne espone i dati sull'AddressSpace.
+
+Maggiori dettagli sullo stack C utilizzato sono disponibili ai seguenti link 
 * [Open62541](https://open62541.org/) 
 * [Open62541 - Docs](https://open62541.org/doc/current/)
 * [Open62541 - Github](https://github.com/open62541/open62541)
 
-Maggiori dettagli sul profilo di trasporto sono disponibili al seguente link
+Maggiori dettagli sul profilo di trasporto implementato sono disponibili al seguente link
 * [UDP UADP](http://opcfoundation-onlineapplications.org/ProfileReporting/index.htm?ModifyProfile.aspx?ProfileID=2faacf36-fea4-4004-be6e-89456642e831)
 
-Il codice sorgente è multipiattaforma, sono state utilizzate librerie standard C e open62541 come unica libreria di terze parti, questa è multipiattaforma, a meno di alcune funzionalità sperimentali che non sono state incluse nel progetto.
+Sono state utilizzate librerie standard C e open62541, questa è multipiattaforma, a meno di alcune funzionalità sperimentali che non sono state incluse nel progetto.
 
 Si rilascia il codice sorgente corredato di _Solution_ Visual Studio, si consiglia quindi questo IDE per la compilazione del progetto su sistema operativo Windows. 
 
 Di seguito è riportata la procedura per build delle librerie necessarie, necessaria poichè la documentazione è carente di informazioni per l'installazione della libreria in ambiente Windows.
 Per informazioni su compilazione e installazione delle librerie in ambiente Linux si rimanda alla [documentazione ufficiale](https://open62541.org/doc/current/building.html) ritenuta esaustiva.
 
-Specifiche tecniche sulle funzionalita del Server OPC UA sono disponibili a [link prelazione](vattelapesca)
+Specifiche tecniche sulle funzionalita del Server OPC UA e sul meccanismo PubSub sono disponibili nella [relazione finale](https://github.com/massimo-gollo/OPC_UA_Project/blob/develope/res/Relazione%20progetto%20Industrial%20Informatics%20.pdf)
 
 ## Getting Started
 
 Tutti i progetti, librerie comprese, sono stati compilati in modalità win32 (x86).
 Configurazioni diverse non assicurano il successo della compilazione.
+
+Al fine di potere compilare con successo i due Server che implementano il Publisher e il Subscriber sono necessarie due versioni distinte di open62541, questo è dovuto al fatto che il team di sviluppo dello stack non ha ancora rilasciato le interfacce necessarie relative al Subscriber.
+Per ovviare a questa limitazione è necessario compilare open62541 come libreria statica e importare interfacce private della libreria, normalmente non visibili se si dovesse utilizzare open62541 come libreria di terze parti, condivisa e installata sul sistema operativo. 
+Le interfacce del Publisher nella versione 1.1 della libreria sono già state rilasciate.
 
 ### Prerequisites
 La configurazione delle librerie e l'abilitazione dei relativi flag necessari per le diverse funzionalità 
