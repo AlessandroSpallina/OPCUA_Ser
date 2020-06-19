@@ -22,7 +22,7 @@ Sono state utilizzate librerie standard C e open62541, questa è multipiattaform
 
 Si rilascia il codice sorgente corredato di _Solution_ Visual Studio, si consiglia quindi questo IDE per la compilazione del progetto su sistema operativo Windows. 
 
-Di seguito è riportata la procedura per build delle librerie necessarie, necessaria poichè la documentazione è carente di informazioni per l'installazione della libreria in ambiente Windows.
+Di seguito è riportata la procedura per il build delle dipendenze del progetto, istruzioni necessarie poichè la documentazione è carente di informazioni per l'installazione della libreria in ambiente Windows.
 Per informazioni su compilazione e installazione delle librerie in ambiente Linux si rimanda alla [documentazione ufficiale](https://open62541.org/doc/current/building.html) ritenuta esaustiva.
 
 Specifiche tecniche sulle funzionalita del Server OPC UA e sul meccanismo PubSub sono disponibili nella [relazione finale](https://github.com/massimo-gollo/OPC_UA_Project/blob/develope/res/Relazione%20progetto%20Industrial%20Informatics%20.pdf)
